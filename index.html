@@ -947,7 +947,7 @@ function renderTable(vuelos, opts={}){
       }
       if(opts.onDelete){
         const e2 = el('span',{class:'back-link', style:'font-size:12px;color:var(--danger);'},'Eliminar');
-        e2.addEventListener('click', ()=>opts.onDelete(v));
+        e2.addEventListener('click', ()=>opts.onDelete(v, e2));
         actions.appendChild(e2);
       }
       cells.push(actions);
@@ -1402,8 +1402,15 @@ function renderListaCatalogoConHoras(categoria, valoresCatalogo, todos){
     del.addEventListener('click', async (ev)=>{
       ev.stopPropagation();
       if(!confirm('¿Eliminar "'+valor+'" de las opciones? Las horas ya registradas no se borran, solo deja de estar disponible para elegir.')) return;
+      del.textContent = 'Eliminando...';
+      del.style.pointerEvents = 'none';
+      del.style.opacity = '0.5';
       const r = await apiPost({action:'eliminarCatalogo', Categoria:categoria, Valor:valor});
-      if(r.ok){ showToast('Eliminado ✓'); render(); } else { showToast(r.error || 'Error al eliminar'); }
+      if(r.ok){ showToast('Eliminado ✓'); render(); }
+      else {
+        showToast(r.error || 'Error al eliminar');
+        del.textContent='Eliminar'; del.style.pointerEvents='auto'; del.style.opacity='1';
+      }
     });
 
     const key = categoria+'|'+valor;
@@ -2189,13 +2196,22 @@ async function renderPiloto(){
   } else {
     content.appendChild(renderTable(r.vuelos, {
       onEdit: (v)=>{ state.editingVuelo=v; render(); },
-      onDelete: async (v)=>{
+      onDelete: async (v, elLink)=>{
         if(!confirm('¿Eliminar este vuelo? Esta acción no se puede deshacer.')) return;
+        elLink.textContent = 'Eliminando...';
+        elLink.style.pointerEvents = 'none';
+        elLink.style.opacity = '0.5';
         try{
           const res = await apiPost({action:'eliminarVuelo', ID:v.ID, Usuario: state.session.usuario});
           if(res.ok){ showToast('Vuelo eliminado ✓'); render(); }
-          else { showToast(res.error || 'Error al eliminar'); }
-        }catch(e){ showToast('No se pudo conectar.'); }
+          else {
+            showToast(res.error || 'Error al eliminar');
+            elLink.textContent='Eliminar'; elLink.style.pointerEvents='auto'; elLink.style.opacity='1';
+          }
+        }catch(e){
+          showToast('No se pudo conectar.');
+          elLink.textContent='Eliminar'; elLink.style.pointerEvents='auto'; elLink.style.opacity='1';
+        }
       }
     }));
     content.appendChild(renderHorasIniciales(hiRes.ok ? hiRes.horas : null));
@@ -2324,9 +2340,15 @@ async function renderAdmin(){
       const del = el('span',{class:'back-link', style:'color:var(--danger);'}, 'Eliminar');
       del.addEventListener('click', async ()=>{
         if(!confirm('¿Eliminar este reporte? Esta acción no se puede deshacer.')) return;
+        del.textContent = 'Eliminando...';
+        del.style.pointerEvents = 'none';
+        del.style.opacity = '0.5';
         const res = await apiPost({action:'eliminarReporte', ID: rep.id});
         if(res.ok){ showToast('Reporte eliminado ✓'); render(); }
-        else { showToast(res.error || 'Error al eliminar'); }
+        else {
+          showToast(res.error || 'Error al eliminar');
+          del.textContent = 'Eliminar'; del.style.pointerEvents='auto'; del.style.opacity='1';
+        }
       });
       pie.appendChild(del);
       card.appendChild(pie);
