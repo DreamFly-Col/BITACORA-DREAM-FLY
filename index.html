@@ -546,6 +546,30 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
     fields[key]=sel;
     return wrapField(key,label,sel);
   }
+  function instructorField(key,label,options){
+    const sel = el('select',{});
+    sel.style.cssText = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
+    sel.appendChild(el('option',{value:''},'Seleccionar...'));
+    options.forEach(o=> sel.appendChild(el('option',{value:o}, o)));
+    sel.appendChild(el('option',{value:'OTRO'},'Otro (escribir)'));
+    fields[key]=sel;
+
+    const mapaAcentos = {'Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U','Ü':'U'};
+    const otroInp = el('input',{type:'text', placeholder:'Escribí el nombre...', style:'display:none;margin-top:8px;text-transform:uppercase;'});
+    otroInp.addEventListener('input', ()=>{
+      let v = otroInp.value.toUpperCase();
+      v = v.replace(/[ÁÉÍÓÚÜ]/g, ch => mapaAcentos[ch] || ch);
+      otroInp.value = v;
+    });
+    fields[key+'_Otro']=otroInp;
+    sel.addEventListener('change', ()=>{
+      otroInp.style.display = (sel.value === 'OTRO') ? 'block' : 'none';
+    });
+
+    const w = wrapField(key,label,sel);
+    w.appendChild(otroInp);
+    return w;
+  }
   function codigoField(key,label){
     const inp = el('input',{type:'text', maxlength:'5', style:'text-transform:uppercase;'});
     inp.addEventListener('input', ()=>{
@@ -567,7 +591,19 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
     sel.style.cssText = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
     sel.appendChild(el('option',{value:''},'Seleccionar...'));
     fields[key]=sel;
-    return wrapField(key,label,sel);
+
+    const otroInp = el('input',{type:'text', placeholder:'Escribí la matrícula...', style:'display:none;margin-top:8px;text-transform:uppercase;'});
+    otroInp.addEventListener('input', ()=>{
+      otroInp.value = otroInp.value.toUpperCase().replace(/[^A-Z0-9\-]/g,'');
+    });
+    fields[key+'_Otro']=otroInp;
+    sel.addEventListener('change', ()=>{
+      otroInp.style.display = (sel.value === 'OTRO') ? 'block' : 'none';
+    });
+
+    const w = wrapField(key,label,sel);
+    w.appendChild(otroInp);
+    return w;
   }
   function potenciaField(key,label){
     const inp = el('input',{type:'number', min:'0', step:'100', placeholder:'0', style:'border-radius:6px 0 0 6px;'});
@@ -643,7 +679,7 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
   grid.appendChild(inputField('Adiestrador_PilotoInstruccion','Piloto en instrucción'));
 
   grid.appendChild(el('div',{class:'section-title'},'Certificaciones'));
-  grid.appendChild(selectField('Certificaciones','Instructor/Safety', catalogos.instructores||[]));
+  grid.appendChild(instructorField('Certificaciones','Instructor/Safety', catalogos.instructores||[]));
 
   card.appendChild(grid);
 
@@ -653,6 +689,16 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
         inp.value = existing[k];
       }
     });
+    // Certificaciones (Instructor/Safety): si el valor guardado no está en
+    // el catálogo, es uno cargado a mano — mostrarlo como "Otro"
+    if(existing.Certificaciones){
+      const opcionesInstr = Array.from(fields.Certificaciones.options).map(o=>o.value).filter(v=>v && v!=='OTRO');
+      if(opcionesInstr.indexOf(existing.Certificaciones) === -1){
+        fields.Certificaciones.value = 'OTRO';
+        fields.Certificaciones_Otro.value = existing.Certificaciones;
+        fields.Certificaciones_Otro.style.display = 'block';
+      }
+    }
   }
 
   // ---- Reglas de habilitado/deshabilitado según Tipo de vuelo y Clase ----
@@ -676,11 +722,24 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
     });
   }
 
-  function actualizarOpcionesSelect(select, opciones, valorActual){
+  function actualizarOpcionesSelect(select, opciones, valorActual, otroInp){
     select.innerHTML = '';
     select.appendChild(el('option',{value:''},'Seleccionar...'));
     opciones.forEach(o=> select.appendChild(el('option',{value:o}, o)));
-    select.value = (opciones.indexOf(valorActual) !== -1) ? valorActual : '';
+    if(otroInp) select.appendChild(el('option',{value:'OTRO'},'Otro (escribir)'));
+
+    if(opciones.indexOf(valorActual) !== -1){
+      select.value = valorActual;
+      if(otroInp) otroInp.style.display = 'none';
+    } else if(otroInp && valorActual){
+      // El valor no está en el catálogo: es uno cargado a mano, mostrar como "Otro"
+      select.value = 'OTRO';
+      if(valorActual !== 'OTRO') otroInp.value = valorActual;
+      otroInp.style.display = 'block';
+    } else {
+      select.value = '';
+      if(otroInp) otroInp.style.display = 'none';
+    }
   }
 
   let matriculaPreferida = (existing && existing.Matricula) || '';
@@ -714,7 +773,7 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
 
     // Matrícula: aviones o simuladores según el tipo de vuelo
     const opcionesMatricula = (tipo === 'SIMULADOR') ? (catalogos.simuladores||[]) : (catalogos.aviones||[]);
-    actualizarOpcionesSelect(fields.Matricula, opcionesMatricula, matriculaPreferida);
+    actualizarOpcionesSelect(fields.Matricula, opcionesMatricula, matriculaPreferida, fields.Matricula_Otro);
   }
   fields.TipoVuelo.addEventListener('change', actualizarEstadoFormulario);
   fields.Clase.addEventListener('change', actualizarEstadoFormulario);
@@ -758,6 +817,26 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
         errorBox.style.display='block';
         return;
       }
+    }
+
+    // Si se eligió "Otro" en Matrícula o Instructor/Safety, usar lo que se escribió
+    if(data.Matricula === 'OTRO'){
+      const otroVal = (fields.Matricula_Otro.value||'').trim();
+      if(!otroVal){
+        errorBox.textContent = 'Escribí la matrícula en el campo "Otro".';
+        errorBox.style.display='block';
+        return;
+      }
+      data.Matricula = otroVal;
+    }
+    if(data.Certificaciones === 'OTRO'){
+      const otroVal = (fields.Certificaciones_Otro.value||'').trim();
+      if(!otroVal){
+        errorBox.textContent = 'Escribí el nombre en el campo "Otro" de Instructor/Safety.';
+        errorBox.style.display='block';
+        return;
+      }
+      data.Certificaciones = otroVal;
     }
 
     if(fields.Fecha.value){
