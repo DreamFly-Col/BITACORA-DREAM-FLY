@@ -1,0 +1,2483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora de Vuelo</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="theme-color" content="#0B1220">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bitácora">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230B1220'/%3E%3Ccircle cx='50' cy='50' r='38' fill='none' stroke='%23F2A93B' stroke-width='3'/%3E%3Cpath d='M50 22 L56 45 L78 52 L78 58 L56 55 L56 68 L64 74 L64 79 L50 75 L36 79 L36 74 L44 68 L44 55 L22 58 L22 52 L44 45 Z' fill='%23F2A93B'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230B1220'/%3E%3Cpath d='M50 18 L57 44 L82 52 L82 59 L57 55 L57 70 L66 77 L66 83 L50 78 L34 83 L34 77 L43 70 L43 55 L18 59 L18 52 L43 44 Z' fill='%23F2A93B'/%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Bit%C3%A1cora%20de%20Vuelo%22%2C%22short_name%22%3A%22Bit%C3%A1cora%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230B1220%22%2C%22theme_color%22%3A%22%230B1220%22%7D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B1220;
+    --panel: #131B2E;
+    --panel-2: #1B2540;
+    --line: #2A3654;
+    --amber: #F2A93B;
+    --amber-dim: #8A6323;
+    --teal: #3FA796;
+    --text: #E8EDF5;
+    --muted: #8B96AC;
+    --danger: #E0665B;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% -10%, rgba(63,167,150,0.10), transparent 40%),
+      radial-gradient(circle at 100% 0%, rgba(242,169,59,0.08), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .app{max-width:1100px;margin:0 auto;padding:20px 16px 60px;}
+
+  /* ---------- LOGIN ---------- */
+  .login-wrap{min-height:90vh;display:flex;align-items:center;justify-content:center;}
+  .login-card{
+    width:100%;max-width:360px;background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:28px 24px;position:relative;overflow:hidden;
+  }
+  .login-card:before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg, var(--amber), var(--teal));
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .brand-badge{
+    width:36px;height:36px;border-radius:50%;
+    border:2px solid var(--amber);display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono';font-weight:700;color:var(--amber);font-size:14px;
+  }
+  .brand h1{font-size:17px;margin:0;letter-spacing:.02em;}
+  .brand p{margin:2px 0 0;color:var(--muted);font-size:12px;}
+  .field{margin-top:16px;}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;}
+  .field input{
+    width:100%;padding:10px 12px;background:var(--panel-2);
+    border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;
+  }
+  .field input:focus{outline:none;border-color:var(--amber);}
+  button{cursor:pointer;font-family:inherit;}
+  .btn-primary{
+    margin-top:20px;width:100%;padding:11px;background:var(--amber);
+    border:none;border-radius:6px;color:#1a1204;font-weight:700;font-size:14px;
+    letter-spacing:.02em;
+  }
+  .btn-primary:disabled{opacity:.5;cursor:default;}
+  .btn-secondary{
+    padding:9px 14px;background:transparent;border:1px solid var(--line);
+    border-radius:6px;color:var(--text);font-size:13px;
+  }
+  .error-msg{margin-top:14px;color:var(--danger);font-size:13px;}
+  .config-note{margin-top:18px;font-size:11px;color:var(--muted);line-height:1.5;border-top:1px dashed var(--line);padding-top:12px;}
+
+  /* ---------- TOPBAR ---------- */
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+  .who h2{margin:0;font-size:19px;}
+  .who p{margin:2px 0 0;color:var(--muted);font-size:12px;}
+  .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--amber-dim);color:var(--amber);margin-left:8px;}
+
+  /* ---------- TABS ---------- */
+  .tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--line);}
+  .tab{padding:10px 16px;color:var(--muted);border-bottom:2px solid transparent;font-size:13px;font-weight:600;background:none;border-top:none;border-left:none;border-right:none;}
+  .tab.active{color:var(--amber);border-bottom-color:var(--amber);}
+
+  /* ---------- INSTRUMENT ROW (totals) ---------- */
+  .gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:22px;}
+  .gauge{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px;}
+  .gauge .val{font-family:'IBM Plex Mono';font-size:22px;font-weight:600;color:var(--amber);}
+  .gauge .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+  .dias-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;}
+  .gauge-dia{
+    background:var(--panel-2);border:1px solid var(--teal);border-radius:8px;
+    padding:8px 6px;text-align:center;position:relative;
+  }
+  .gauge-dia .val{font-family:'IBM Plex Mono';font-size:14px;font-weight:600;color:var(--teal);}
+  .gauge-dia .lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+  .gauge-dia.sin-datos{border-color:var(--line);}
+  .gauge-dia.sin-datos .val{color:var(--muted);}
+  .gauge-dia.es-hoy{border:2px solid var(--amber);box-shadow:0 0 0 1px var(--amber);}
+  .gauge-dia.es-hoy::after{
+    content:'HOY';position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    background:var(--amber);color:#1a1204;font-size:8px;font-weight:700;
+    letter-spacing:.05em;padding:1px 5px;border-radius:6px;
+  }
+  .gauge-dia.seleccionado{background:var(--panel);border-color:var(--amber);}
+  .gauge-dia.seleccionado .val{color:var(--amber);}
+
+  /* ---------- FORM ---------- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:20px;}
+  .card h3{margin:0 0 4px;font-size:14px;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;}
+  .card .sub{color:var(--muted);font-size:11px;margin-bottom:14px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+  .grid .field{margin-top:0;}
+  .grid input{width:100%;}
+  .section-title{grid-column:1/-1;font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 2px;border-top:1px solid var(--line);padding-top:12px;}
+  .section-title:first-child{border-top:none;padding-top:0;margin-top:0;}
+
+  /* ---------- TABLE (flight strips) ---------- */
+  .strip-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .strip-table th{
+    background:var(--panel-2);color:var(--muted);font-weight:600;text-align:left;
+    padding:8px 10px;position:sticky;top:0;text-transform:uppercase;font-size:10px;letter-spacing:.04em;
+    border-bottom:1px solid var(--line);
+  }
+  .strip-table td{padding:8px 10px;border-bottom:1px solid var(--line);font-family:'IBM Plex Mono';white-space:nowrap;}
+  .strip-table tr:hover td{background:rgba(242,169,59,0.05);}
+  .table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);}
+  .empty{padding:30px;text-align:center;color:var(--muted);font-size:13px;}
+  .spinner-wrap{padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;}
+  .spinner{
+    width:28px;height:28px;margin:0 auto 12px;
+    border:3px solid var(--line);border-top-color:var(--amber);
+    border-radius:50%;animation:girar .7s linear infinite;
+  }
+  @keyframes girar{ to{ transform:rotate(360deg); } }
+
+  /* ---------- ADMIN LIST ---------- */
+  .pilot-list{display:grid;gap:8px;}
+  .pilot-item{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;cursor:pointer;
+  }
+  .pilot-item:hover{border-color:var(--amber-dim);}
+  .pilot-item .name{font-weight:600;font-size:14px;}
+  .pilot-item .meta{font-size:11px;color:var(--muted);margin-top:2px;}
+  .pilot-item .hours{font-family:'IBM Plex Mono';color:var(--amber);font-size:16px;font-weight:600;}
+  .back-link{color:var(--teal);font-size:13px;cursor:pointer;margin-bottom:14px;display:inline-block;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--teal);color:#062420;padding:10px 18px;border-radius:6px;font-size:13px;font-weight:600;z-index:50;}
+  .logout{color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;}
+  /* ---------- INFORME IMPRIMIBLE ---------- */
+  #print-report{ display:none; }
+  #print-report .rep-header{ text-align:center; margin-bottom:24px; border-bottom:2px solid #192D44; padding-bottom:14px; }
+  #print-report .rep-header h1{ margin:0; font-size:20px; letter-spacing:.04em; color:#192D44; }
+  #print-report .rep-header p{ margin:4px 0 0; font-size:12px; color:#555; }
+  #print-report h2{ font-size:14px; margin:22px 0 8px; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #ccc; padding-bottom:4px; color:#192D44; }
+  #print-report table{ width:100%; border-collapse:collapse; font-size:11px; margin-bottom:8px; }
+  #print-report th, #print-report td{ border:1px solid #999; padding:5px 7px; text-align:left; }
+  #print-report th{ background:#eee; font-weight:700; }
+  @media print{
+    body > *:not(#print-report){ display:none !important; }
+    #print-report{ display:block !important; position:static !important; background:#fff; color:#111; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="print-report"></div>
+<script>
+/* ============================================================
+   CONFIGURACIÓN: pega aquí la URL de tu Google Apps Script
+   ============================================================ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsoHFBpgsazF5NBeiboHfNLHWeIXIt_Qx5RdQ1LLIRXCITa3zZuutFPsoDFTVvkPS3/exec";
+
+const state = {
+  session: null,
+  tab: 'nuevo',
+  adminTab: 'inicio',
+  adminSelected: null,
+  editingVuelo: null,
+  mostrarFormPiloto: false,
+  busquedaPiloto: '',
+  // Todos los "desplegado/contraído" de año-mes-día de Estadísticas viven acá
+  // adentro, en vez de un nombre de propiedad suelto por cada sección.
+  expandido: {
+    secciones: {},          // Horas Dream Fly / avión / simulador / instructor (encabezados colapsables)
+    bloqueAnios: {},        // año→mes→gráfico (Pilotos > Estadísticas de vuelo, y cada avión/simulador/instructor)
+    bloqueMes: {},
+    catalogoAnios: {},      // flecha de años dentro de cada avión/simulador/instructor
+    horasDreamFlyAnios: {}, // año→mes de la sección fusionada Horas Dream Fly
+    horasDreamFlyMes: {},
+    controlDiarioAnios: {}, // año→mes→día de Control diario
+    controlDiarioMes: {},
+    controlDiarioDia: {}
+  },
+  aniosExtra: [],
+  cacheEstadisticas: null,
+  cachePilotoVuelos: null,
+  paginaTabla: null,
+  cacheTablaVuelos: null,
+  procCategoria: null,
+  loading: false,
+};
+
+function el(tag, attrs={}, children=[]){
+  const e = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='class') e.className=v;
+    else if(k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else if(k==='html') e.innerHTML=v;
+    else e.setAttribute(k,v);
+  });
+  (Array.isArray(children)?children:[children]).forEach(c=>{
+    if(c==null) return;
+    e.appendChild(typeof c==='string'?document.createTextNode(c):c);
+  });
+  return e;
+}
+
+// Arma un ".field" (etiqueta + control) asociando bien <label for="..."> con
+// el id del campo real, y agregando id/name únicos — para que el navegador
+// pueda autocompletar y para accesibilidad (lectores de pantalla).
+let contadorCampoId = 0;
+function campoConEtiqueta(label, control){
+  const inputEl = (control.tagName === 'INPUT' || control.tagName === 'SELECT' || control.tagName === 'TEXTAREA')
+    ? control
+    : control.querySelector('input,select,textarea');
+  if(inputEl && !inputEl.id){
+    contadorCampoId++;
+    inputEl.id = 'campo-'+contadorCampoId;
+    if(!inputEl.name) inputEl.name = inputEl.id;
+  }
+  const labelEl = inputEl ? el('label',{for:inputEl.id}, label) : el('label',{}, label);
+  return el('div',{class:'field'},[labelEl, control]);
+}
+
+function fmt(n){ return (Number(n)||0).toFixed(1); }
+
+function formatFecha(val){
+  if(!val) return '';
+  const s = String(val);
+  const datePart = s.includes('T') ? s.split('T')[0] : s;
+  const m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? m[3]+'/'+m[2]+'/'+m[1] : datePart;
+}
+function formatFechaHora(val){
+  if(!val) return '';
+  const d = new Date(val);
+  if(isNaN(d.getTime())) return String(val);
+  const pad = n=>String(n).padStart(2,'0');
+  return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+
+// Tabla estándar de conversión minutos → décimas de hora
+function minutosATiempo(min){
+  if(min <= 2) return 0.0;
+  if(min <= 8) return 0.1;
+  if(min <= 14) return 0.2;
+  if(min <= 20) return 0.3;
+  if(min <= 26) return 0.4;
+  if(min <= 33) return 0.5;
+  if(min <= 39) return 0.6;
+  if(min <= 45) return 0.7;
+  if(min <= 51) return 0.8;
+  if(min <= 57) return 0.9;
+  return 1.0;
+}
+
+// Calcula el tiempo de vuelo (en horas decimales) a partir de HoraSalida y HoraLlegada (HH:MM, 24h)
+function calcularHorasVoladas(horaSalida, horaLlegada){
+  const mS = horaSalida.match(/^(\d{2}):(\d{2})$/);
+  const mL = horaLlegada.match(/^(\d{2}):(\d{2})$/);
+  if(!mS || !mL) return null;
+  const totalSalida = parseInt(mS[1],10)*60 + parseInt(mS[2],10);
+  const totalLlegada = parseInt(mL[1],10)*60 + parseInt(mL[2],10);
+  let diff = totalLlegada - totalSalida;
+  if(diff < 0) diff += 24*60; // cruza medianoche
+  const horasCompletas = Math.floor(diff/60);
+  const minutosResto = diff % 60;
+  return horasCompletas + minutosATiempo(minutosResto);
+}
+
+// Reintenta una operación async hasta 2 veces más si falla (útil porque el
+// "sandbox" de Apps Script a veces falla de forma momentánea y transitoria,
+// sin que sea un error real de nuestro código ni de los datos).
+async function conReintento(fn, intentos=3, esperaMs=700){
+  let ultimoError;
+  for(let i=0; i<intentos; i++){
+    try{
+      return await fn();
+    }catch(e){
+      ultimoError = e;
+      if(i < intentos-1) await new Promise(r=>setTimeout(r, esperaMs));
+    }
+  }
+  throw ultimoError;
+}
+
+async function apiGet(params){
+  const merged = Object.assign({}, params);
+  if(state.session && state.session.token && merged.action !== 'login'){
+    merged.token = state.session.token;
+  }
+  const url = SCRIPT_URL + '?' + new URLSearchParams(merged).toString();
+  let json;
+  try{
+    json = await conReintento(async ()=>{
+      const res = await fetch(url);
+      const j = await res.json();
+      if(esErrorTransitorio(j)) throw new Error(j.error);
+      return j;
+    });
+  } catch(e){
+    // Se agotaron los reintentos: devolvemos igual una respuesta con la
+    // forma esperada ({ok:false,...}), en vez de dejar que la promesa reviente.
+    json = { ok:false, error: e.message || 'No se pudo conectar.' };
+  }
+  manejarSesionExpirada(json);
+  return json;
+}
+async function apiPost(body){
+  const merged = Object.assign({}, body);
+  if(state.session && state.session.token){
+    merged.token = state.session.token;
+  }
+  // OJO: acá NO se reintenta solo. Guardar/editar/borrar no es seguro de
+  // repetir automáticamente — si el primer intento en realidad sí se guardó
+  // pero la respuesta se perdió en el camino, reintentar duplicaría el dato
+  // (por ejemplo, un vuelo guardado varias veces). El reintento automático
+  // solo se usa para lecturas (apiGet), que no tienen ese riesgo.
+  let json;
+  try{
+    const res = await fetch(SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(merged)
+    });
+    json = await res.json();
+  } catch(e){
+    json = { ok:false, error: 'No se pudo conectar. Fijate si el cambio ya se guardó antes de volver a intentar.' };
+  }
+  manejarSesionExpirada(json);
+  return json;
+}
+// Distingue una falla momentánea de la infraestructura de Google (vale la
+// pena reintentar sola) de un error de validación propio nuestro, como
+// "Usuario o clave incorrectos" (no tiene sentido reintentar eso).
+function esErrorTransitorio(json){
+  return json && json.ok === false && /^Exception:/.test(json.error || '');
+}
+function manejarSesionExpirada(json){
+  if(json && json.ok === false && /sesión/i.test(json.error || '') && state.session){
+    state.session = null;
+    render();
+  }
+}
+
+function render(reintentando){
+  const root = document.getElementById('root');
+  if(SCRIPT_URL.includes('PEGAR_AQUI')){
+    root.innerHTML='';
+    root.appendChild(renderConfigWarning());
+    return;
+  }
+  if(!state.session){
+    root.innerHTML='';
+    root.appendChild(renderLogin());
+    return;
+  }
+  // renderAdmin/renderPiloto son async: manejan su propia inserción en el
+  // DOM (spinner primero, contenido real después). No hay que envolverlas
+  // en appendChild acá, porque devuelven una promesa, no un nodo.
+  const manejarError = err=>{
+    console.error(err);
+    if(!reintentando){
+      // Primer fallo: reintentamos toda la pantalla una vez, solos, antes
+      // de molestar al usuario (Apps Script a veces falla de forma momentánea).
+      setTimeout(()=> render(true), 900);
+    } else {
+      showToast('No se pudo conectar. Probá de nuevo en unos segundos.');
+    }
+  };
+  if(state.session.rol === 'admin'){
+    renderAdmin().catch(manejarError);
+  } else {
+    renderPiloto().catch(manejarError);
+  }
+}
+
+function renderConfigWarning(){
+  return el('div',{class:'login-wrap'},[
+    el('div',{class:'login-card'},[
+      el('div',{class:'brand'},[
+        el('div',{class:'brand-badge'},'✈'),
+        el('div',{},[el('h1',{},'Falta configurar'), el('p',{},'Conexión a Google Sheets')])
+      ]),
+      el('p',{style:'color:var(--muted);font-size:13px;line-height:1.6;margin-top:14px;'},
+        'Este Dashboard todavía no tiene la URL del Apps Script conectada. Despliega el script en Google, copia la URL (termina en /exec) y pásasela a Claude para que la integre.')
+    ])
+  ]);
+}
+
+/* ---------------- LOGIN ---------------- */
+function renderLogin(){
+  let error = null;
+  const wrap = el('div',{class:'login-wrap'});
+  const card = el('div',{class:'login-card'});
+  card.appendChild(el('div',{class:'brand'},[
+    el('div',{class:'brand-badge'},'✈'),
+    el('div',{},[el('h1',{},'Bitácora de Vuelo'), el('p',{},'Registro de horas voladas')])
+  ]));
+
+  const userField = el('input',{type:'text', autocomplete:'username', placeholder:'ej: jperez'});
+  const passField = el('input',{type:'password', autocomplete:'current-password', placeholder:'••••••'});
+  const errorBox = el('div',{class:'error-msg', style:'display:none;'});
+  const btn = el('button',{class:'btn-primary'},'Ingresar');
+
+  card.appendChild(campoConEtiqueta('Usuario', userField));
+  card.appendChild(campoConEtiqueta('Clave', passField));
+  card.appendChild(errorBox);
+  card.appendChild(btn);
+  card.appendChild(el('div',{class:'config-note'},'¿No tenés usuario o clave? Pideselo a tu instructor.'));
+
+  async function doLogin(){
+    if(!userField.value || !passField.value) return;
+    btn.disabled = true; btn.textContent='Verificando...';
+    try{
+      const r = await apiGet({action:'login', usuario:userField.value.trim(), clave:passField.value});
+      if(r.ok){
+        state.session = r;
+        state.tab = 'nuevo';
+        render();
+      } else {
+        errorBox.textContent = r.error || 'Error de acceso';
+        errorBox.style.display='block';
+      }
+    } catch(e){
+      errorBox.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      errorBox.style.display='block';
+    }
+    btn.disabled=false; btn.textContent='Ingresar';
+  }
+  btn.addEventListener('click', doLogin);
+  passField.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+  wrap.appendChild(card);
+  return wrap;
+}
+
+/* ---------------- TOPBAR ---------------- */
+function renderTopbar(subtitle){
+  const bar = el('div',{class:'topbar'});
+  bar.appendChild(el('div',{class:'who'},[
+    el('h2',{},[state.session.nombre+' '+state.session.apellido, el('span',{class:'tag'},state.session.rol==='admin'?'Instructor':'Piloto')]),
+    el('p',{},subtitle)
+  ]));
+  const logout = el('span',{class:'logout'},'Cerrar sesión');
+  logout.addEventListener('click', ()=>{
+    const token = state.session && state.session.token;
+    state.session=null; render();
+    if(token){ apiPost({action:'logout', token}).catch(()=>{}); }
+  });
+  bar.appendChild(logout);
+  return bar;
+}
+
+/* ---------------- GAUGES (totales) ---------------- */
+function renderGauges(t){
+  const items = [
+    ['Total horas', fmt(t.TotalHoras)],
+    ['Día aeródromo', fmt(t.AD_Dia_Piloto)],
+    ['Noche aeródromo', fmt(t.AD_Noche_Piloto)],
+    ['Travesía día', fmt(t.TR_Dia_Piloto)],
+    ['Travesía noche', fmt(t.TR_Noche_Piloto)],
+    ['Multimotor', fmt(t.Multimotor)],
+    ['Instrumentos', fmt((Number(t.Instr_Real_Piloto)||0))],
+    ['Aterrizajes', fmt(t.Aterrizajes)],
+    ['Capota', fmt(t.Capota)],
+    ['Simulador', fmt(t.Adiestrador_PilotoInstruccion)],
+  ];
+  const wrap = el('div',{class:'gauges'});
+  items.forEach(([lbl,val])=>{
+    wrap.appendChild(el('div',{class:'gauge'},[
+      el('div',{class:'val mono'},val),
+      el('div',{class:'lbl'},lbl)
+    ]));
+  });
+  return wrap;
+}
+
+/* ---------------- FORM NUEVO VUELO ---------------- */
+function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catalogos={aviones:[],simuladores:[],instructores:[]}){
+  const isEdit = !!existing;
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},isEdit ? 'Editar registro de vuelo' : 'Nuevo registro de vuelo'));
+  card.appendChild(el('div',{class:'sub'},'Completá según corresponda. Dejá en blanco lo que no aplique.'));
+
+  const grid = el('div',{class:'grid'});
+  const fields = {};
+  const wrappers = {};
+  function wrapField(key, label, control){
+    const w = campoConEtiqueta(label, control);
+    wrappers[key] = w;
+    return w;
+  }
+  function inputField(key,label,opts={}){
+    const inp = el('input',{type:'number', step: opts.step || '0.1', min:'0', placeholder:'0.0'});
+    fields[key]=inp;
+    return wrapField(key,label,inp);
+  }
+  function textField(key,label,type='text'){
+    const inp = el('input',{type:type});
+    fields[key]=inp;
+    return wrapField(key,label,inp);
+  }
+  // Fecha: no permite elegir un día posterior a hoy (sí fechas pasadas)
+  function fechaField(key,label){
+    const hoy = new Date();
+    const hoyStr = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+    const inp = el('input',{type:'date', max:hoyStr});
+    inp.addEventListener('change', ()=>{
+      if(inp.value && inp.value > hoyStr) inp.value = hoyStr;
+    });
+    fields[key]=inp;
+    return wrapField(key,label,inp);
+  }
+  function selectField(key,label,options){
+    const sel = el('select',{},[]);
+    sel.style.cssText = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
+    sel.appendChild(el('option',{value:''},'Seleccionar...'));
+    options.forEach(o=> sel.appendChild(el('option',{value:o}, o)));
+    fields[key]=sel;
+    return wrapField(key,label,sel);
+  }
+  function codigoField(key,label){
+    const inp = el('input',{type:'text', maxlength:'5', style:'text-transform:uppercase;'});
+    inp.addEventListener('input', ()=>{
+      inp.value = inp.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,5);
+    });
+    fields[key]=inp;
+    return wrapField(key,label,inp);
+  }
+  function marcaModeloField(key,label){
+    const inp = el('input',{type:'text'});
+    inp.addEventListener('input', ()=>{
+      inp.value = inp.value.toUpperCase().replace(/[^A-Z0-9 ]/g,'');
+    });
+    fields[key]=inp;
+    return wrapField(key,label,inp);
+  }
+  function matriculaField(key,label){
+    const sel = el('select',{});
+    sel.style.cssText = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
+    sel.appendChild(el('option',{value:''},'Seleccionar...'));
+    fields[key]=sel;
+    return wrapField(key,label,sel);
+  }
+  function potenciaField(key,label){
+    const inp = el('input',{type:'number', min:'0', step:'100', placeholder:'0', style:'border-radius:6px 0 0 6px;'});
+    fields[key]=inp;
+    const wrap = el('div',{style:'display:flex;align-items:center;gap:0;'},[
+      inp,
+      el('span',{style:'background:var(--panel-2);border:1px solid var(--line);border-left:none;border-radius:0 6px 6px 0;padding:10px 8px;color:var(--muted);font-size:13px;'},'hp')
+    ]);
+    return wrapField(key,label,wrap);
+  }
+  // Hora en formato 24h estricto (00:00 a 24:00), sin AM/PM
+  function time24Field(key,label){
+    const inp = el('input',{type:'text', inputmode:'numeric', maxlength:'5', placeholder:'HH:MM'});
+    inp.addEventListener('input', ()=>{
+      let digits = inp.value.replace(/[^0-9]/g,'').slice(0,4);
+      if(digits.length >= 3){
+        inp.value = digits.slice(0,2) + ':' + digits.slice(2);
+      } else {
+        inp.value = digits;
+      }
+    });
+    inp.addEventListener('blur', ()=>{
+      const m = inp.value.match(/^(\d{2}):(\d{2})$/);
+      if(!m){ if(inp.value) inp.value=''; return; }
+      let hh = parseInt(m[1],10), mm = parseInt(m[2],10);
+      if(hh>24 || mm>59 || (hh===24 && mm>0)){ inp.value=''; }
+    });
+    fields[key]=inp;
+    return wrapField(key,label,inp);
+  }
+  // Aterrizajes: solo enteros
+  function enteroField(key,label){
+    const inp = el('input',{type:'number', min:'0', step:'1', placeholder:'0', inputmode:'numeric'});
+    inp.addEventListener('input', ()=>{
+      if(inp.value.includes('.')) inp.value = inp.value.split('.')[0];
+    });
+    fields[key]=inp;
+    return wrapField(key,label,inp);
+  }
+
+  grid.appendChild(el('div',{class:'section-title'},'Itinerario'));
+  grid.appendChild(selectField('TipoVuelo','Tipo de vuelo',['LOCAL','TRAVESIA','SIMULADOR']));
+  grid.appendChild(fechaField('Fecha','Fecha'));
+  grid.appendChild(time24Field('HoraSalida','Hora de salida (24h)'));
+  grid.appendChild(codigoField('Desde','Desde'));
+  grid.appendChild(codigoField('Hasta','Hasta'));
+  grid.appendChild(time24Field('HoraLlegada','Hora de llegada (24h)'));
+  grid.appendChild(selectField('Finalidad','Finalidad del vuelo',['ADAPTACION','EXAMEN','INSTRUCCION','READAPTACION','VUELO PRIVADO']));
+
+  grid.appendChild(el('div',{class:'section-title'},'Aeronave utilizada'));
+  grid.appendChild(marcaModeloField('Marca_Modelo','Marca / Modelo'));
+  grid.appendChild(matriculaField('Matricula','Matrícula'));
+  grid.appendChild(potenciaField('Potencia','Potencia'));
+  grid.appendChild(selectField('Clase','Clase',['MONT-T','MULT-T']));
+
+  grid.appendChild(el('div',{class:'section-title'},'Tiempos de vuelo — Sobre aeródromo'));
+  grid.appendChild(inputField('AD_Dia_Piloto','Día · Piloto'));
+  grid.appendChild(inputField('AD_Noche_Piloto','Noche · Piloto'));
+
+  grid.appendChild(el('div',{class:'section-title'},'Tiempos de vuelo — Travesía'));
+  grid.appendChild(inputField('TR_Dia_Piloto','Día · Piloto'));
+  grid.appendChild(inputField('TR_Noche_Piloto','Noche · Piloto'));
+
+  grid.appendChild(el('div',{class:'section-title'},'Aterrizajes'));
+  grid.appendChild(enteroField('Aterrizajes','Cantidad'));
+
+  grid.appendChild(el('div',{class:'section-title'},'Discriminación de tiempos de vuelo'));
+  grid.appendChild(inputField('Multimotor','Multimotor'));
+  grid.appendChild(inputField('Instr_Real_Piloto','Instrumentos · Piloto'));
+  grid.appendChild(inputField('Capota','Capota'));
+
+  grid.appendChild(el('div',{class:'section-title'},'Adiestrador terrestre / Simulador'));
+  grid.appendChild(inputField('Adiestrador_PilotoInstruccion','Piloto en instrucción'));
+
+  grid.appendChild(el('div',{class:'section-title'},'Certificaciones'));
+  grid.appendChild(selectField('Certificaciones','Instructor/Safety', catalogos.instructores||[]));
+
+  card.appendChild(grid);
+
+  if(isEdit){
+    Object.entries(fields).forEach(([k,inp])=>{
+      if(existing[k] !== undefined && existing[k] !== null && existing[k] !== ''){
+        inp.value = existing[k];
+      }
+    });
+  }
+
+  // ---- Reglas de habilitado/deshabilitado según Tipo de vuelo y Clase ----
+  const GRUPO_AD = ['AD_Dia_Piloto','AD_Noche_Piloto'];
+  const GRUPO_TR = ['TR_Dia_Piloto','TR_Noche_Piloto'];
+  const GRUPO_SOLO_SIMULADOR_DESHABILITA = [
+    ...GRUPO_AD, ...GRUPO_TR, 'Aterrizajes', 'Multimotor', 'Instr_Real_Piloto', 'Capota', 'Potencia', 'Clase'
+  ];
+  const FINALIDAD_COMPLETA = ['ADAPTACION','EXAMEN','INSTRUCCION','READAPTACION','VUELO PRIVADO'];
+  const FINALIDAD_SIMULADOR = ['EXAMEN','INSTRUCCION'];
+
+  function setGroupEnabled(keys, enabled){
+    keys.forEach(k=>{
+      const inp = fields[k];
+      const w = wrappers[k];
+      if(!inp || !w) return;
+      inp.disabled = !enabled;
+      w.style.opacity = enabled ? '1' : '0.35';
+      w.style.pointerEvents = enabled ? 'auto' : 'none';
+      if(!enabled) inp.value = '';
+    });
+  }
+
+  function actualizarOpcionesSelect(select, opciones, valorActual){
+    select.innerHTML = '';
+    select.appendChild(el('option',{value:''},'Seleccionar...'));
+    opciones.forEach(o=> select.appendChild(el('option',{value:o}, o)));
+    select.value = (opciones.indexOf(valorActual) !== -1) ? valorActual : '';
+  }
+
+  let matriculaPreferida = (existing && existing.Matricula) || '';
+  fields.Matricula.addEventListener('change', ()=>{ matriculaPreferida = fields.Matricula.value; });
+
+  function actualizarEstadoFormulario(){
+    const tipo = fields.TipoVuelo.value;
+    const clase = fields.Clase.value;
+
+    // reset: todo habilitado
+    setGroupEnabled([...GRUPO_AD, ...GRUPO_TR, 'Aterrizajes','Multimotor','Instr_Real_Piloto','Capota','Potencia','Clase','Adiestrador_PilotoInstruccion'], true);
+
+    if(tipo === 'LOCAL'){
+      setGroupEnabled(GRUPO_TR, false);
+      setGroupEnabled(['Adiestrador_PilotoInstruccion'], false);
+    } else if(tipo === 'TRAVESIA'){
+      setGroupEnabled(GRUPO_AD, false);
+      setGroupEnabled(['Adiestrador_PilotoInstruccion'], false);
+    } else if(tipo === 'SIMULADOR'){
+      setGroupEnabled(GRUPO_SOLO_SIMULADOR_DESHABILITA, false);
+    }
+
+    // Clase MONT-T deshabilita Multimotor (si el simulador ya lo deshabilitó, no hace nada extra)
+    if(tipo !== 'SIMULADOR' && clase === 'MONT-T'){
+      setGroupEnabled(['Multimotor'], false);
+    }
+
+    // Finalidad: en Simulador solo Examen e Instrucción
+    const opcionesFinalidad = (tipo === 'SIMULADOR') ? FINALIDAD_SIMULADOR : FINALIDAD_COMPLETA;
+    actualizarOpcionesSelect(fields.Finalidad, opcionesFinalidad, fields.Finalidad.value);
+
+    // Matrícula: aviones o simuladores según el tipo de vuelo
+    const opcionesMatricula = (tipo === 'SIMULADOR') ? (catalogos.simuladores||[]) : (catalogos.aviones||[]);
+    actualizarOpcionesSelect(fields.Matricula, opcionesMatricula, matriculaPreferida);
+  }
+  fields.TipoVuelo.addEventListener('change', actualizarEstadoFormulario);
+  fields.Clase.addEventListener('change', actualizarEstadoFormulario);
+  actualizarEstadoFormulario();
+
+  const HORAS_MAX = 320;
+  const CAMPOS_HORAS = [
+    'AD_Dia_Piloto','AD_Noche_Piloto','TR_Dia_Piloto','TR_Noche_Piloto',
+    'Multimotor','Instr_Real_Piloto','Capota','Adiestrador_PilotoInstruccion'
+  ];
+  const CAMPOS_TOTAL = ['AD_Dia_Piloto','AD_Noche_Piloto','TR_Dia_Piloto','TR_Noche_Piloto'];
+  const ETIQUETAS_CAMPO = {
+    TipoVuelo:'Tipo de vuelo', Fecha:'Fecha', HoraSalida:'Hora de salida', HoraLlegada:'Hora de llegada',
+    Desde:'Desde', Hasta:'Hasta', Finalidad:'Finalidad del vuelo', Marca_Modelo:'Marca / Modelo',
+    Matricula:'Matrícula', Potencia:'Potencia', Clase:'Clase', Certificaciones:'Instructor/Safety'
+  };
+  // Total acumulado sin contar este vuelo (si se está editando, se resta lo que ya tenía cargado)
+  const baseTotal = currentTotal - (isEdit ? (Number(existing.TotalHoras)||0) : 0);
+
+  const errorBox = el('div',{class:'error-msg', style:'display:none;'});
+  const btn = el('button',{class:'btn-primary', style:'max-width:220px;'}, isEdit ? 'Guardar cambios' : 'Guardar vuelo');
+  btn.addEventListener('click', async ()=>{
+    const data = {action: isEdit ? 'editarVuelo' : 'agregarVuelo', Usuario: state.session.usuario};
+    if(isEdit) data.ID = existing.ID;
+    Object.entries(fields).forEach(([k,inp])=>{
+      data[k] = inp.value;
+    });
+
+    const tipo = fields.TipoVuelo.value;
+
+    // Campos obligatorios según el tipo de vuelo
+    const requeridos = ['TipoVuelo','Fecha','HoraSalida','HoraLlegada','Finalidad','Marca_Modelo','Matricula','Certificaciones'];
+    if(tipo !== 'SIMULADOR'){
+      requeridos.push('Desde','Hasta','Potencia','Clase');
+    }
+    for(const k of requeridos){
+      const inp = fields[k];
+      if(!inp) continue;
+      if(!String(inp.value||'').trim()){
+        errorBox.textContent = 'El campo "'+(ETIQUETAS_CAMPO[k]||k)+'" es obligatorio.';
+        errorBox.style.display='block';
+        return;
+      }
+    }
+
+    if(fields.Fecha.value){
+      const hoy = new Date();
+      const hoyStr = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+      if(fields.Fecha.value > hoyStr){
+        errorBox.textContent = 'No se pueden registrar vuelos con fecha futura.';
+        errorBox.style.display='block';
+        return;
+      }
+    }
+
+    if(fields.Desde.value && fields.Desde.value.length < 3){
+      errorBox.textContent = 'El campo "Desde" necesita mínimo 3 letras.';
+      errorBox.style.display='block';
+      return;
+    }
+    if(fields.Hasta.value && fields.Hasta.value.length < 3){
+      errorBox.textContent = 'El campo "Hasta" necesita mínimo 3 letras.';
+      errorBox.style.display='block';
+      return;
+    }
+    // Validación 320 horas: ninguna casilla individual (menos Aterrizajes) puede superar 320
+    for(const k of CAMPOS_HORAS){
+      const v = Number(fields[k] && fields[k].value) || 0;
+      if(v > HORAS_MAX){
+        errorBox.textContent = 'Ninguna casilla de horas puede superar '+HORAS_MAX+'.';
+        errorBox.style.display='block';
+        return;
+      }
+    }
+    // Validación 320 horas: el total acumulado del piloto no puede superar 320
+    const nuevasHoras = CAMPOS_TOTAL.reduce((s,k)=> s + (Number(fields[k] && fields[k].value) || 0), 0);
+    if(baseTotal + nuevasHoras > HORAS_MAX){
+      errorBox.textContent = 'Este vuelo haría que superes el máximo de '+HORAS_MAX+' horas totales.';
+      errorBox.style.display='block';
+      return;
+    }
+
+    let maxSegunHorario = null;
+    if(fields.HoraSalida.value && fields.HoraLlegada.value){
+      maxSegunHorario = calcularHorasVoladas(fields.HoraSalida.value, fields.HoraLlegada.value);
+    }
+
+    // Discriminación/Simulador: ninguna casilla puede superar el tiempo volado según el horario
+    if(maxSegunHorario !== null){
+      const CAMPOS_DURACION = ['Multimotor','Instr_Real_Piloto','Capota','Adiestrador_PilotoInstruccion'];
+      for(const k of CAMPOS_DURACION){
+        const v = Number(fields[k] && fields[k].value) || 0;
+        if(v > maxSegunHorario + 1e-9){
+          errorBox.textContent = 'Según '+fields.HoraSalida.value+' a '+fields.HoraLlegada.value+' (máx. '+maxSegunHorario.toFixed(1)+' h), ninguna casilla puede superar ese valor.';
+          errorBox.style.display='block';
+          return;
+        }
+      }
+    }
+
+    // Sobre aeródromo + Travesía deben sumar EXACTO el tiempo volado (Local/Travesía)
+    if(maxSegunHorario !== null && (tipo === 'LOCAL' || tipo === 'TRAVESIA')){
+      const sumaADTR = CAMPOS_TOTAL.reduce((s,k)=> s + (Number(fields[k] && fields[k].value) || 0), 0);
+      if(Math.abs(sumaADTR - maxSegunHorario) > 1e-9){
+        errorBox.textContent = 'Las horas deben sumar exactamente '+maxSegunHorario.toFixed(1)+' h (sumaste '+sumaADTR.toFixed(1)+' h).';
+        errorBox.style.display='block';
+        return;
+      }
+    }
+
+    errorBox.style.display='none';
+    btn.disabled=true; btn.textContent='Guardando...';
+    try{
+      const r = await apiPost(data);
+      if(r.ok){
+        if(!isEdit) Object.values(fields).forEach(inp=>inp.value='');
+        showToast(isEdit ? 'Vuelo actualizado ✓' : 'Vuelo registrado ✓');
+        onSaved && onSaved();
+      } else {
+        errorBox.textContent = r.error || 'Error al guardar';
+        errorBox.style.display='block';
+      }
+    } catch(e){
+      errorBox.textContent = 'No se pudo conectar.';
+      errorBox.style.display='block';
+    }
+    btn.disabled=false; btn.textContent = isEdit ? 'Guardar cambios' : 'Guardar vuelo';
+  });
+  card.appendChild(errorBox);
+  const btnRow = el('div',{style:'display:flex;gap:10px;align-items:center;'},[btn]);
+  if(isEdit && onCancel){
+    const cancelBtn = el('button',{class:'btn-secondary'},'Cancelar');
+    cancelBtn.addEventListener('click', onCancel);
+    btnRow.appendChild(cancelBtn);
+  }
+  card.appendChild(btnRow);
+  return card;
+}
+
+function renderSpinner(texto){
+  return el('div',{class:'spinner-wrap'},[
+    el('div',{class:'spinner'}),
+    el('div',{}, texto||'Cargando...')
+  ]);
+}
+
+function showToast(msg){
+  const t = el('div',{class:'toast'},msg);
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+
+// Refresca solo el bloque de "Estadísticas" (admin) usando los datos ya
+// traídos del servidor, sin volver a pedirlos — para que expandir/contraer
+// años, navegar meses o agregar/eliminar un año local se sienta instantáneo.
+function refrescarEstadisticas(){
+  const cont = document.getElementById('estadisticas-container');
+  if(!cont || !state.cacheEstadisticas){ render(); return; }
+  cont.innerHTML = '';
+  cont.appendChild(renderEstadisticasAdmin(state.cacheEstadisticas.pilotos, state.cacheEstadisticas.catalogos));
+}
+
+// Igual que arriba, pero para el bloque "Estadísticas de vuelo" dentro del
+// perfil de un piloto.
+function refrescarEstadisticasPiloto(){
+  const cont = document.getElementById('estadisticas-piloto-container');
+  if(!cont || !state.cachePilotoVuelos){ render(); return; }
+  cont.innerHTML = '';
+  cont.appendChild(renderEstadisticasPiloto(state.cachePilotoVuelos));
+}
+
+/* ---------------- TABLE (bitácora) ---------------- */
+const TAM_PAGINA_VUELOS = 10;
+
+function renderTable(vuelos, opts={}){
+  state.cacheTablaVuelos = { vuelos, opts };
+  const cont = el('div',{id:'tabla-vuelos-container'});
+
+  if(!vuelos || vuelos.length===0){
+    cont.appendChild(el('div',{class:'table-scroll'},[el('div',{class:'empty'},'Todavía no hay vuelos registrados.')]));
+    return cont;
+  }
+  const cols = [
+    ['TipoVuelo','Tipo'],['Fecha','Fecha'],['HoraSalida','H. Salida'],['Desde','Desde'],['Hasta','Hasta'],['HoraLlegada','H. Llegada'],['Finalidad','Finalidad'],
+    ['Marca_Modelo','Aeronave'],['Matricula','Matrícula'],['Certificaciones','Instructor'],
+    ['AD_Dia_Piloto','AD Día'],['AD_Noche_Piloto','AD Noche'],
+    ['TR_Dia_Piloto','TR Día'],['TR_Noche_Piloto','TR Noche'],
+    ['Aterrizajes','Aterr.'],['Multimotor','Multim.'],
+    ['Instr_Real_Piloto','Instrum.'],['Capota','Capota'],['Adiestrador_PilotoInstruccion','SIM'],['TotalHoras','Total']
+  ];
+  if(opts.mostrarPiloto) cols.unshift(['PilotoNombre','Piloto']);
+  function fechaComparable(v){
+    const s = String(v.Fecha || '');
+    const datePart = s.includes('T') ? s.split('T')[0] : s;
+    return datePart; // formato YYYY-MM-DD, comparable como texto
+  }
+  function formatCell(key, val){
+    if(val == null || val === '') return '';
+    if(key === 'Fecha') return formatFecha(val);
+    const s = String(val);
+    if(key !== 'Fecha' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)){
+      return '⚠ revisar'; // celda vieja afectada por el bug de formato, hay que corregirla a mano
+    }
+    return s;
+  }
+
+  // Orden cronológico ascendente: el más antiguo va primero (página 1),
+  // los más nuevos se van agregando al final de la última página.
+  const ordenados = vuelos.slice().sort((a,b)=> fechaComparable(a).localeCompare(fechaComparable(b)));
+  const totalPaginas = Math.max(1, Math.ceil(ordenados.length / TAM_PAGINA_VUELOS));
+  if(state.paginaTabla === null || state.paginaTabla === undefined) state.paginaTabla = totalPaginas; // por defecto: la última página (lo más reciente)
+  if(state.paginaTabla > totalPaginas) state.paginaTabla = totalPaginas;
+  if(state.paginaTabla < 1) state.paginaTabla = 1;
+  const inicio = (state.paginaTabla-1)*TAM_PAGINA_VUELOS;
+  const paginaActual = ordenados.slice(inicio, inicio+TAM_PAGINA_VUELOS);
+
+  const table = el('table',{class:'strip-table'});
+  const headerCells = cols.map(c=>el('th',{},c[1]));
+  if(opts.onEdit || opts.onDelete) headerCells.push(el('th',{},'Acciones'));
+  const thead = el('thead',{},[el('tr',{},headerCells)]);
+  const tbody = el('tbody',{});
+  paginaActual.forEach(v=>{
+    const cells = cols.map(c=>el('td',{},formatCell(c[0], v[c[0]])));
+    if(opts.onEdit || opts.onDelete){
+      const actions = el('td',{style:'white-space:nowrap;'});
+      if(opts.onEdit){
+        const e1 = el('span',{class:'back-link', style:'margin-right:10px;font-size:12px;'},'Editar');
+        e1.addEventListener('click', ()=>opts.onEdit(v));
+        actions.appendChild(e1);
+      }
+      if(opts.onDelete){
+        const e2 = el('span',{class:'back-link', style:'font-size:12px;color:var(--danger);'},'Eliminar');
+        e2.addEventListener('click', ()=>opts.onDelete(v));
+        actions.appendChild(e2);
+      }
+      cells.push(actions);
+    }
+    tbody.appendChild(el('tr',{},cells));
+  });
+  table.appendChild(thead); table.appendChild(tbody);
+  cont.appendChild(el('div',{class:'table-scroll'},[table]));
+
+  if(totalPaginas > 1){
+    const nav = el('div',{style:'display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;flex-wrap:wrap;'});
+    function irAPagina(p){ state.paginaTabla = p; refrescarTablaVuelos(); }
+    const prevBtn = el('button',{class:'btn-secondary', style:(state.paginaTabla<=1?'opacity:.35;pointer-events:none;':'')}, '←');
+    prevBtn.addEventListener('click', ()=> irAPagina(state.paginaTabla-1));
+    nav.appendChild(prevBtn);
+    for(let p=1; p<=totalPaginas; p++){
+      const esActual = p===state.paginaTabla;
+      const b = el('button',{class:'btn-secondary', style: esActual ? 'background:var(--amber);color:#1a1204;border-color:var(--amber);font-weight:700;' : ''}, String(p));
+      b.addEventListener('click', ()=> irAPagina(p));
+      nav.appendChild(b);
+    }
+    const nextBtn = el('button',{class:'btn-secondary', style:(state.paginaTabla>=totalPaginas?'opacity:.35;pointer-events:none;':'')}, '→');
+    nextBtn.addEventListener('click', ()=> irAPagina(state.paginaTabla+1));
+    nav.appendChild(nextBtn);
+    cont.appendChild(nav);
+    cont.appendChild(el('div',{style:'text-align:center;color:var(--muted);font-size:11px;margin-top:6px;'}, 'Página '+state.paginaTabla+' de '+totalPaginas+' · '+ordenados.length+' vuelos'));
+  }
+
+  return cont;
+}
+
+// Refresca solo la tabla de vuelos (cambio de página) usando los datos ya
+// cargados, sin volver a pedirlos al servidor.
+function refrescarTablaVuelos(){
+  const cont = document.getElementById('tabla-vuelos-container');
+  if(!cont || !state.cacheTablaVuelos){ render(); return; }
+  const { vuelos, opts } = state.cacheTablaVuelos;
+  cont.replaceWith(renderTable(vuelos, opts));
+}
+
+/* ---------------- REPORTE ANÓNIMO ---------------- */
+function renderReporte(){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Reporte anónimo'));
+  card.appendChild(el('div',{class:'sub'},'Este mensaje llega únicamente al instructor y no queda asociado a tu usuario.'));
+  const textarea = el('textarea',{rows:'6', placeholder:'Escribí tu mensaje...', id:'reporte-mensaje', name:'mensaje', 'aria-label':'Mensaje del reporte'});
+  textarea.style.cssText='width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;font-family:inherit;resize:vertical;';
+  card.appendChild(el('div',{class:'field'},[textarea]));
+
+  const errorBox = el('div',{class:'error-msg', style:'display:none;'});
+  const btn = el('button',{class:'btn-primary', style:'max-width:220px;margin-top:14px;'},'Enviar reporte');
+  btn.addEventListener('click', async ()=>{
+    if(!textarea.value.trim()) return;
+    btn.disabled=true; btn.textContent='Enviando...';
+    try{
+      const r = await apiPost({action:'enviarReporte', Mensaje: textarea.value.trim()});
+      if(r.ok){ textarea.value=''; showToast('Reporte enviado ✓'); errorBox.style.display='none'; }
+      else { errorBox.textContent = r.error||'Error al enviar'; errorBox.style.display='block'; }
+    }catch(e){ errorBox.textContent='No se pudo conectar.'; errorBox.style.display='block'; }
+    btn.disabled=false; btn.textContent='Enviar reporte';
+  });
+  card.appendChild(errorBox);
+  card.appendChild(btn);
+  return card;
+}
+
+/* ---------------- ESTADO MIGRATORIO (piloto) ---------------- */
+function renderMigratorio(estado){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Estado migratorio'));
+  card.appendChild(el('div',{class:'sub'},'Actualizá esta información cuando cambie. Se guarda tu último estado.'));
+
+  const grid = el('div',{class:'grid'});
+  const fields = {};
+  function dateF(key,label){
+    const inp = el('input',{type:'date'});
+    fields[key]=inp;
+    grid.appendChild(campoConEtiqueta(label, inp));
+  }
+  function checkF(key,label){
+    const sel = el('select',{});
+    sel.style.cssText='width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
+    [['','Seleccionar...'],['SI','Sí'],['NO','No']].forEach(([v,l])=> sel.appendChild(el('option',{value:v}, l)));
+    fields[key]=sel;
+    grid.appendChild(campoConEtiqueta(label, sel));
+  }
+  dateF('FechaLlegada','Fecha de llegada a Argentina');
+  checkF('Radex','¿Inició trámite RADEX?');
+  dateF('FechaCitaMigracion','Fecha de cita a migración');
+  checkF('Precaria','¿Tiene precaria/DNI?');
+  dateF('FechaVencePrecaria','Vencimiento tiempo legal/Precaria');
+  card.appendChild(grid);
+
+  if(estado){
+    Object.entries(fields).forEach(([k,inp])=>{
+      if(!estado[k]) return;
+      inp.value = (k.startsWith('Fecha')) ? String(estado[k]).split('T')[0] : estado[k];
+    });
+  }
+
+  const errorBox = el('div',{class:'error-msg', style:'display:none;'});
+  const btn = el('button',{class:'btn-primary', style:'max-width:220px;margin-top:6px;'},'Guardar');
+  btn.addEventListener('click', async ()=>{
+    const data = {action:'guardarEstadoMigratorio', Usuario: state.session.usuario};
+    Object.entries(fields).forEach(([k,inp])=>{ data[k]=inp.value; });
+    btn.disabled=true; btn.textContent='Guardando...';
+    try{
+      const r = await apiPost(data);
+      if(r.ok){ showToast('Estado migratorio actualizado ✓'); errorBox.style.display='none'; }
+      else { errorBox.textContent=r.error||'Error al guardar'; errorBox.style.display='block'; }
+    }catch(e){ errorBox.textContent='No se pudo conectar.'; errorBox.style.display='block'; }
+    btn.disabled=false; btn.textContent='Guardar';
+  });
+  card.appendChild(errorBox);
+  card.appendChild(btn);
+  return card;
+}
+
+function renderHorasIniciales(horas){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Horas iniciales'));
+  card.appendChild(el('div',{class:'sub'},'Horas acumuladas antes de empezar a usar esta bitácora. Se suman automáticamente a tus totales y estadísticas, junto con los vuelos que registres acá.'));
+
+  const grid = el('div',{class:'grid'});
+  const fields = {};
+  function numF(key,label){
+    const inp = el('input',{type:'number', min:'0', step:'0.1', placeholder:'0.0'});
+    fields[key]=inp;
+    grid.appendChild(campoConEtiqueta(label, inp));
+  }
+  numF('HorasTotales','Horas totales');
+  numF('AD_Dia','Sobre aeródromo · Día');
+  numF('AD_Noche','Sobre aeródromo · Noche');
+  numF('TR_Dia','Travesía · Día');
+  numF('TR_Noche','Travesía · Noche');
+  numF('Multimotor','Multimotor');
+  numF('Instrumentos','Instrumentos');
+  numF('Aterrizajes','Aterrizajes');
+  numF('Capota','Capota');
+  numF('Simulador','Simulador');
+  card.appendChild(grid);
+
+  if(horas){
+    Object.entries(fields).forEach(([k,inp])=>{
+      if(horas[k] !== undefined && horas[k] !== null && horas[k] !== '') inp.value = horas[k];
+    });
+  }
+
+  const errorBox2 = el('div',{class:'error-msg', style:'display:none;'});
+  const btn2 = el('button',{class:'btn-primary', style:'max-width:220px;margin-top:6px;'},'Guardar');
+  btn2.addEventListener('click', async ()=>{
+    const horasTotales = Number(fields.HorasTotales.value) || 0;
+    const sumaADTR = ['AD_Dia','AD_Noche','TR_Dia','TR_Noche'].reduce((s,k)=> s + (Number(fields[k].value)||0), 0);
+    if(Math.abs(sumaADTR - horasTotales) > 1e-9){
+      errorBox2.textContent = 'Sobre aeródromo + Travesía deben sumar exactamente '+horasTotales.toFixed(1)+' h (ahora suman '+sumaADTR.toFixed(1)+' h).';
+      errorBox2.style.display='block';
+      return;
+    }
+    const ETIQUETAS_TOPE = {Multimotor:'Multimotor', Instrumentos:'Instrumentos', Capota:'Capota'};
+    for(const k of Object.keys(ETIQUETAS_TOPE)){
+      const v = Number(fields[k].value)||0;
+      if(v > horasTotales + 1e-9){
+        errorBox2.textContent = '"'+ETIQUETAS_TOPE[k]+'" no puede superar las Horas totales ('+horasTotales.toFixed(1)+' h).';
+        errorBox2.style.display='block';
+        return;
+      }
+    }
+    errorBox2.style.display='none';
+    const data = {action:'guardarHorasIniciales', Usuario: state.session.usuario};
+    Object.entries(fields).forEach(([k,inp])=>{ data[k]=inp.value; });
+    btn2.disabled=true; btn2.textContent='Guardando...';
+    try{
+      const r = await apiPost(data);
+      if(r.ok){
+        showToast('Horas iniciales guardadas ✓');
+        errorBox2.style.display='none';
+        state.paginaTabla=null;
+        try{ render(); }catch(e2){ console.error(e2); }
+      } else {
+        errorBox2.textContent=r.error||'Error al guardar';
+        errorBox2.style.display='block';
+      }
+    }catch(e){
+      errorBox2.textContent='No se pudo conectar.';
+      errorBox2.style.display='block';
+    } finally {
+      btn2.disabled=false; btn2.textContent='Guardar';
+    }
+  });
+  card.appendChild(errorBox2);
+  card.appendChild(btn2);
+  return card;
+}
+
+/* ---------------- ESTADO MIGRATORIO (resumen admin, solo lectura) ---------------- */
+function renderMigratorioResumen(m){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Estado migratorio'));
+  if(!m){
+    card.appendChild(el('div',{class:'sub'},'Todavía no cargó esta información.'));
+    return card;
+  }
+  const rows = [
+    ['Llegada a Argentina', formatFecha(m.FechaLlegada)],
+    ['RADEX iniciado', m.Radex||'-'],
+    ['Cita a migración', formatFecha(m.FechaCitaMigracion)],
+    ['Tiene precaria/DNI', m.Precaria||'-'],
+    ['Vence tiempo legal/Precaria', formatFecha(m.FechaVencePrecaria)],
+  ];
+  const grid = el('div',{class:'gauges'});
+  rows.forEach(([lbl,val])=>{
+    grid.appendChild(el('div',{class:'gauge'},[
+      el('div',{class:'val mono', style:'font-size:15px;'}, val || '-'),
+      el('div',{class:'lbl'}, lbl)
+    ]));
+  });
+  card.appendChild(grid);
+  return card;
+}
+
+/* ---------------- ESTADÍSTICAS (helpers compartidos) ---------------- */
+const MESES_NOMBRE = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function mesLabel(mesKey){
+  const [y,m] = mesKey.split('-');
+  return MESES_NOMBRE[parseInt(m,10)-1] + ' ' + y;
+}
+
+// Devuelve los rangos de días [1-7, 8-14, 15-21, 22-28, 29-fin] que existen
+// realmente para ese mes (la última semana varía según cuántos días tiene el mes)
+function rangosSemana(mesKey){
+  const [y,m] = mesKey.split('-').map(Number);
+  const ultimoDia = new Date(y, m, 0).getDate();
+  const rangos = [[1,7],[8,14],[15,21],[22,28]];
+  if(ultimoDia >= 29) rangos.push([29, ultimoDia]);
+  return rangos;
+}
+function rangoLabel(r){ return r[0]+'-'+r[1]; }
+function diasEnMes(mesKey){
+  const [y,m] = mesKey.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+
+// Horas por mes y por semana del mes, usando SOLO TotalHoras (Sobre aeródromo + Travesía)
+function calcularEstadisticasMensuales(vuelos, campo='TotalHoras'){
+  const map = {};
+  vuelos.forEach(v=>{
+    const horas = Number(v[campo])||0;
+    const fechaStr = String(v.Fecha||'');
+    const datePart = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr;
+    const m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!m) return;
+    const mesKey = m[1]+'-'+m[2];
+    const dia = parseInt(m[3],10);
+    const semana = Math.min(5, Math.ceil(dia/7));
+    if(!map[mesKey]) map[mesKey] = {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
+    map[mesKey].total += horas;
+    map[mesKey].semanas[semana] += horas;
+  });
+  return map;
+}
+
+// Desglose Año (contraído por defecto) → Mes (12) → Semana, reutilizable.
+// Modo simple: pasar statsSingle (de calcularEstadisticasMensuales) y statsDual=null.
+// Modo dual (vuelo + simulador, ej. instructor/safety): pasar statsSingle=null y
+// statsDual={vuelo:{...}, simulador:{...}}.
+// Mini-tabla con el desglose semanal del MES ACTUAL (hoy), en el mismo
+// formato que el desglose completo. Se recalcula sola cada vez que se
+// renderiza, así que cambia de mes automáticamente cuando corresponda.
+function renderTablaMesActual(statsSingle, statsDual){
+  const dual = !!statsDual;
+  const ahora = new Date();
+  const mesKey = ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0');
+  const rangos = rangosSemana(mesKey);
+  const table = el('table',{class:'strip-table'});
+
+  if(!dual){
+    const s = statsSingle[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
+    const headRow = rangos.map(r=> el('th',{}, rangoLabel(r)));
+    headRow.push(el('th',{},'Total mes'));
+    table.appendChild(el('thead',{},[el('tr',{},headRow)]));
+    const dataRow = rangos.map((r,i)=> el('td',{}, fmt(s.semanas[i+1])));
+    dataRow.push(el('td',{}, fmt(s.total)));
+    table.appendChild(el('tbody',{},[el('tr',{},dataRow)]));
+  } else {
+    const sV = statsDual.vuelo[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
+    const sS = statsDual.simulador[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
+    const headRow = [el('th',{},'')];
+    rangos.forEach(r=> headRow.push(el('th',{}, rangoLabel(r))));
+    headRow.push(el('th',{},'Total mes'));
+    table.appendChild(el('thead',{},[el('tr',{},headRow)]));
+    const rowV = [el('td',{},'Vuelo')];
+    rangos.forEach((r,i)=> rowV.push(el('td',{}, fmt(sV.semanas[i+1]))));
+    rowV.push(el('td',{}, fmt(sV.total)));
+    const rowS = [el('td',{},'Simulador')];
+    rangos.forEach((r,i)=> rowS.push(el('td',{}, fmt(sS.semanas[i+1]))));
+    rowS.push(el('td',{}, fmt(sS.total)));
+    table.appendChild(el('tbody',{},[el('tr',{},rowV), el('tr',{},rowS)]));
+  }
+
+  const wrap = el('div',{});
+  wrap.appendChild(el('div',{style:'font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;'}, mesLabel(mesKey)+' (mes actual)'));
+  wrap.appendChild(el('div',{class:'table-scroll'},[table]));
+  return wrap;
+}
+
+function renderAniosExpandibles(statsSingle, statsDual, keyBase){
+  const dual = !!statsDual;
+  const wrap = el('div',{});
+
+  let anios;
+  if(dual){
+    const claves = new Set([...Object.keys(statsDual.vuelo), ...Object.keys(statsDual.simulador)]);
+    anios = Array.from(new Set(Array.from(claves).map(k=>k.split('-')[0]))).sort();
+  } else {
+    anios = Array.from(new Set(Object.keys(statsSingle).map(k=>k.split('-')[0]))).sort();
+  }
+  if(anios.length === 0){
+    wrap.appendChild(el('div',{class:'empty'},'Todavía no hay datos suficientes.'));
+    return wrap;
+  }
+
+  if(!state.statsCatalogoExpandido) state.statsCatalogoExpandido = {};
+
+  anios.forEach(anio=>{
+    const key = keyBase+'|'+anio;
+    const expandido = !!state.statsCatalogoExpandido[key];
+    const header = el('div',{style:'display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-top:1px solid var(--line);'});
+    header.appendChild(el('div',{style:'font-weight:600;font-size:13px;'}, anio));
+    header.appendChild(el('span',{style:'color:var(--amber);font-size:12px;display:inline-block;transition:transform .15s;'+(expandido?'transform:rotate(90deg);':'')}, '▶'));
+    header.addEventListener('click', ()=>{ state.statsCatalogoExpandido[key] = !expandido; refrescarEstadisticas(); });
+    wrap.appendChild(header);
+
+    if(expandido){
+      for(let m=1; m<=12; m++){
+        const mesKey = anio+'-'+String(m).padStart(2,'0');
+        const rangos = rangosSemana(mesKey);
+        const bloque = el('div',{style:'margin-top:14px;'});
+        bloque.appendChild(el('div',{style:'font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;'}, mesLabel(mesKey)));
+        const table = el('table',{class:'strip-table'});
+
+        if(!dual){
+          const s = statsSingle[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
+          const headRow = rangos.map(r=> el('th',{}, rangoLabel(r)));
+          headRow.push(el('th',{},'Total mes'));
+          table.appendChild(el('thead',{},[el('tr',{},headRow)]));
+          const dataRow = rangos.map((r,i)=> el('td',{}, fmt(s.semanas[i+1])));
+          dataRow.push(el('td',{}, fmt(s.total)));
+          table.appendChild(el('tbody',{},[el('tr',{},dataRow)]));
+        } else {
+          const sV = statsDual.vuelo[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
+          const sS = statsDual.simulador[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
+          const headRow = [el('th',{},'')];
+          rangos.forEach(r=> headRow.push(el('th',{}, rangoLabel(r))));
+          headRow.push(el('th',{},'Total mes'));
+          table.appendChild(el('thead',{},[el('tr',{},headRow)]));
+          const rowV = [el('td',{},'Vuelo')];
+          rangos.forEach((r,i)=> rowV.push(el('td',{}, fmt(sV.semanas[i+1]))));
+          rowV.push(el('td',{}, fmt(sV.total)));
+          const rowS = [el('td',{},'Simulador')];
+          rangos.forEach((r,i)=> rowS.push(el('td',{}, fmt(sS.semanas[i+1]))));
+          rowS.push(el('td',{}, fmt(sS.total)));
+          table.appendChild(el('tbody',{},[el('tr',{},rowV), el('tr',{},rowS)]));
+        }
+        bloque.appendChild(el('div',{class:'table-scroll'},[table]));
+        wrap.appendChild(bloque);
+      }
+    }
+  });
+  return wrap;
+}
+
+function renderEstadisticasPiloto(vuelos){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Estadísticas de vuelo'));
+  card.appendChild(el('div',{class:'sub'},'Calculado solo con horas de Sobre aeródromo y Travesía.'));
+
+  // El año en curso arranca expandido por defecto (solo la primera vez; si
+  // el usuario lo cierra a mano, se respeta su elección en los siguientes renders)
+  const anioActual = String(new Date().getFullYear());
+  const keyAnioActual = 'estadisticasPiloto|'+anioActual;
+  if(state.expandido.bloqueAnios[keyAnioActual] === undefined) state.expandido.bloqueAnios[keyAnioActual] = true;
+
+  card.appendChild(renderBloqueAnioMes(vuelos, 'TotalHoras', 'estadisticasPiloto', refrescarEstadisticasPiloto));
+  return card;
+}
+
+// Envoltorio genérico: título + flecha ▶ que despliega el contenido (colapsado
+// por defecto). Se usa para cada sección de Estadísticas.
+function renderSeccionColapsable(key, titulo, construirContenido){
+  const abierta = !!state.expandido.secciones[key];
+  const card = el('div',{class:'card'});
+  const header = el('div',{style:'display:flex;align-items:center;justify-content:space-between;cursor:pointer;'});
+  header.appendChild(el('h3',{style:'margin:0;'}, titulo));
+  header.appendChild(el('span',{style:'color:var(--amber);font-size:14px;display:inline-block;transition:transform .15s;'+(abierta?'transform:rotate(90deg);':'')}, '▶'));
+  header.addEventListener('click', ()=>{ state.expandido.secciones[key] = !abierta; refrescarEstadisticas(); });
+  card.appendChild(header);
+  if(abierta){
+    const cont = el('div',{style:'margin-top:14px;'});
+    cont.appendChild(construirContenido());
+    card.appendChild(cont);
+  }
+  return card;
+}
+
+function renderEstadisticasAdmin(pilotos, catalogos){
+  const todos = [];
+  pilotos.forEach(p => (p.vuelos||[]).forEach(v => { v.PilotoNombre = (p.nombre||'')+' '+(p.apellido||''); todos.push(v); }));
+  const cantidadPilotos = pilotos.length || 1;
+
+  const wrap = el('div',{});
+
+  wrap.appendChild(renderSeccionColapsable('informeMensual', 'Informe mensual', ()=>renderInformeMensual(pilotos, todos)));
+  wrap.appendChild(renderSeccionColapsable('horasDreamFly', 'Horas Dream Fly', ()=>renderHorasDreamFly(todos)));
+  wrap.appendChild(renderSeccionColapsable('controlDiario', 'Control diario', ()=>renderControlDiario(todos)));
+  wrap.appendChild(renderSeccionColapsable('avion', 'Horas de vuelo por avión', ()=>renderListaCatalogoConHoras('AVION', catalogos.aviones||[], todos)));
+  wrap.appendChild(renderSeccionColapsable('simulador', 'Horas de simulador', ()=>renderListaCatalogoConHoras('SIMULADOR', catalogos.simuladores||[], todos)));
+  wrap.appendChild(renderSeccionColapsable('instructor', 'Horas de vuelo por instructor/safety', ()=>renderListaCatalogoConHoras('INSTRUCTOR', catalogos.instructores||[], todos)));
+
+  return wrap;
+}
+
+// Cuerpo de la tarjeta genérica: lista de opciones del catálogo (con botones
+// agregar/eliminar) junto con el desglose Año → Mes → Semana de cada una
+// (mismo criterio que "Pilotos → Estadísticas de vuelo"). El título ya lo
+// pone renderSeccionColapsable, acá solo va el contenido.
+function renderListaCatalogoConHoras(categoria, valoresCatalogo, todos){
+  const body = el('div',{});
+  body.appendChild(el('div',{class:'sub'},'Estas son las únicas opciones que van a poder elegir los pilotos en el formulario.'));
+
+  const addBtn = el('button',{class:'btn-secondary', style:'margin:10px 0 12px;'}, '+ Agregar opción');
+  addBtn.addEventListener('click', async ()=>{
+    const val = prompt('Nueva opción para esta lista:');
+    if(!val || !val.trim()) return;
+    const r = await apiPost({action:'agregarCatalogo', Categoria:categoria, Valor:val.trim()});
+    if(r.ok){ showToast('Agregado ✓'); render(); } else { showToast(r.error || 'Error al agregar'); }
+  });
+  body.appendChild(addBtn);
+
+  if(!valoresCatalogo || valoresCatalogo.length === 0){
+    body.appendChild(el('div',{class:'empty'},'Todavía no hay opciones cargadas.'));
+    return body;
+  }
+
+
+  valoresCatalogo.forEach(valor=>{
+    const entryWrap = el('div',{style:'margin-top:16px;padding-top:16px;border-top:1px solid var(--line);'});
+    const headerRow = el('div',{style:'display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:0 0 10px;cursor:pointer;'});
+    headerRow.appendChild(el('div',{class:'name mono'}, valor));
+
+    const del = el('span',{class:'back-link', style:'color:var(--danger);white-space:nowrap;'}, 'Eliminar');
+    del.addEventListener('click', async (ev)=>{
+      ev.stopPropagation();
+      if(!confirm('¿Eliminar "'+valor+'" de las opciones? Las horas ya registradas no se borran, solo deja de estar disponible para elegir.')) return;
+      const r = await apiPost({action:'eliminarCatalogo', Categoria:categoria, Valor:valor});
+      if(r.ok){ showToast('Eliminado ✓'); render(); } else { showToast(r.error || 'Error al eliminar'); }
+    });
+
+    const key = categoria+'|'+valor;
+    const aniosVisibles = !!state.expandido.catalogoAnios[key];
+    const flechaAnios = el('span',{style:'color:var(--amber);font-size:12px;display:inline-block;transition:transform .15s;'+(aniosVisibles?'transform:rotate(90deg);':'')}, '▶');
+
+    let totalDisplay, desglose;
+    if(categoria === 'INSTRUCTOR'){
+      const vVuelo = todos.filter(v=> v.Certificaciones===valor && v.TipoVuelo!=='SIMULADOR');
+      const vSim = todos.filter(v=> v.Certificaciones===valor && v.TipoVuelo==='SIMULADOR');
+      const statsVuelo = calcularEstadisticasMensuales(vVuelo, 'TotalHoras');
+      const statsSim = calcularEstadisticasMensuales(vSim, 'Adiestrador_PilotoInstruccion');
+      const totalVuelo = Object.values(statsVuelo).reduce((s,x)=>s+x.total,0);
+      const totalSim = Object.values(statsSim).reduce((s,x)=>s+x.total,0);
+      totalDisplay = el('div',{style:'text-align:right;'},[
+        el('div',{class:'hours mono', style:'font-size:14px;'}, 'H VUELO: '+fmt(totalVuelo)),
+        el('div',{class:'hours mono', style:'font-size:14px;'}, 'H SIMULADOR: '+fmt(totalSim))
+      ]);
+      desglose = renderBloqueAnioMesDual(vVuelo, vSim, key);
+    } else {
+      const campo = categoria === 'SIMULADOR' ? 'Adiestrador_PilotoInstruccion' : 'TotalHoras';
+      const vFiltrados = todos.filter(v=> v.Matricula===valor && (categoria==='SIMULADOR' ? v.TipoVuelo==='SIMULADOR' : true));
+      const stats = calcularEstadisticasMensuales(vFiltrados, campo);
+      const total = Object.values(stats).reduce((s,x)=>s+x.total,0);
+      totalDisplay = el('div',{class:'hours mono'}, fmt(total)+' h');
+      desglose = renderBloqueAnioMes(vFiltrados, campo, key);
+    }
+
+    const accionesWrap = el('div',{style:'display:flex;align-items:center;gap:14px;'},[del, totalDisplay, flechaAnios]);
+    headerRow.appendChild(accionesWrap);
+    headerRow.addEventListener('click', ()=>{ state.expandido.catalogoAnios[key] = !aniosVisibles; refrescarEstadisticas(); });
+    entryWrap.appendChild(headerRow);
+    if(aniosVisibles) entryWrap.appendChild(desglose);
+    body.appendChild(entryWrap);
+  });
+  return body;
+}
+
+// Suma de horas voladas (todos los pilotos) por cada día del mes indicado
+function calcularHorasPorDia(vuelos, mesKey, campo='TotalHoras'){
+  const dias = diasEnMes(mesKey);
+  const horas = new Array(dias).fill(0);
+  vuelos.forEach(v=>{
+    const valor = Number(v[campo])||0;
+    if(valor === 0) return;
+    const fechaStr = String(v.Fecha||'');
+    const datePart = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr;
+    if(!datePart.startsWith(mesKey)) return;
+    const m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!m) return;
+    const dia = parseInt(m[3],10);
+    if(dia >= 1 && dia <= dias) horas[dia-1] += valor;
+  });
+  return horas;
+}
+
+// Gráfico de barras en SVG puro (sin librerías externas): eje X = días del
+// mes, eje Y = horas, arranca en 0, incrementos de 1, mínimo hasta 30 y se
+// amplía sola en enteros si algún día supera eso. Línea guía en cada hora,
+// pero el número solo se muestra cada 5 para que no quede saturado.
+function renderGraficoBarras(valores){
+  const COLOR_BARRA = '#F2A93B';
+  const COLOR_LINEA_MAYOR = 'rgba(139,150,172,0.35)';
+  const COLOR_LINEA_MENOR = 'rgba(139,150,172,0.12)';
+  const COLOR_TEXTO = '#8B96AC';
+
+  const dias = valores.length;
+  const maxValor = valores.length ? Math.max(...valores) : 0;
+  const escalaMax = Math.max(30, Math.ceil(maxValor));
+
+  const altoGrafico = 240;
+  const anchoBarra = 20;
+  const espacio = 6;
+  const margenIzq = 32;
+  const margenInf = 22;
+  const margenSup = 10;
+  const anchoTotal = margenIzq + dias*(anchoBarra+espacio) + espacio;
+  const altoTotal = margenSup + altoGrafico + margenInf;
+  const escalaY = v => margenSup + altoGrafico - (v/escalaMax)*altoGrafico;
+
+  let svg = '<svg viewBox="0 0 '+anchoTotal+' '+altoTotal+'" width="'+anchoTotal+'" height="'+altoTotal+'" style="display:block;">';
+
+  for(let h=0; h<=escalaMax; h++){
+    const y = escalaY(h);
+    const esMayor = (h % 5 === 0);
+    svg += '<line x1="'+margenIzq+'" y1="'+y+'" x2="'+anchoTotal+'" y2="'+y+'" stroke="'+(esMayor?COLOR_LINEA_MAYOR:COLOR_LINEA_MENOR)+'" stroke-width="1"/>';
+    if(esMayor){
+      svg += '<text x="'+(margenIzq-6)+'" y="'+(y+3)+'" text-anchor="end" font-size="9" fill="'+COLOR_TEXTO+'" font-family="IBM Plex Mono">'+h+'</text>';
+    }
+  }
+
+  valores.forEach((v,i)=>{
+    const x = margenIzq + espacio + i*(anchoBarra+espacio);
+    const yTop = escalaY(v);
+    const altoBarra = Math.max(0, (margenSup+altoGrafico) - yTop);
+    if(v>0) svg += '<rect class="barra-hora" data-dia="'+(i+1)+'" data-valor="'+v+'" x="'+x+'" y="'+yTop+'" width="'+anchoBarra+'" height="'+altoBarra+'" fill="'+COLOR_BARRA+'" rx="2" style="cursor:pointer;"/>';
+    svg += '<text x="'+(x+anchoBarra/2)+'" y="'+(altoTotal-6)+'" text-anchor="middle" font-size="9" fill="'+COLOR_TEXTO+'" font-family="IBM Plex Mono">'+(i+1)+'</text>';
+  });
+
+  svg += '</svg>';
+
+  const wrap = el('div',{class:'table-scroll', style:'position:relative;'});
+  wrap.innerHTML = svg;
+
+  const tooltip = el('div',{style:'position:absolute;pointer-events:none;background:#0B1220;border:1px solid var(--amber);color:var(--amber);font-family:\'IBM Plex Mono\';font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap;display:none;z-index:10;transform:translate(-50%,-100%);'});
+  wrap.appendChild(tooltip);
+
+  wrap.querySelectorAll('.barra-hora').forEach(rect=>{
+    rect.addEventListener('mouseenter', ()=>{
+      const dia = rect.getAttribute('data-dia');
+      const valor = parseFloat(rect.getAttribute('data-valor'));
+      tooltip.textContent = 'Día '+dia+': '+fmt(valor)+' h';
+      const rectBox = rect.getBoundingClientRect();
+      const wrapBox = wrap.getBoundingClientRect();
+      tooltip.style.left = (rectBox.left - wrapBox.left + rectBox.width/2) + 'px';
+      tooltip.style.top = (rectBox.top - wrapBox.top - 6) + 'px';
+      tooltip.style.display = 'block';
+    });
+    rect.addEventListener('mouseleave', ()=>{ tooltip.style.display = 'none'; });
+  });
+
+  return wrap;
+}
+
+// Sección "Horas Dream Fly": mismo patrón de navegación Año (contraído) →
+// Mes (12) → gráfico de barras por día, para todos los pilotos combinados.
+// Bloque reutilizable: años (flecha, contraídos por defecto) → grilla de 12
+// meses con su total → gráfico de barras por día del mes elegido. Es EL
+// MISMO esquema que usa "Horas Dream Fly", reutilizado para cualquier lista
+// de vuelos ya filtrada (un avión, un simulador, etc.) y cualquier campo.
+function renderBloqueAnioMes(vuelos, campo, keyBase, refrescarFn){
+  refrescarFn = refrescarFn || refrescarEstadisticas;
+  const body = el('div',{});
+  const stats = calcularEstadisticasMensuales(vuelos, campo);
+  const anios = Array.from(new Set(Object.keys(stats).map(k=>k.split('-')[0]))).sort((a,b)=>b-a);
+
+
+  if(anios.length === 0){
+    body.appendChild(el('div',{class:'empty'},'Todavía no hay datos suficientes.'));
+    return body;
+  }
+
+  anios.forEach(anio=>{
+    const key = keyBase+'|'+anio;
+    const expandido = !!state.expandido.bloqueAnios[key];
+    const header = el('div',{style:'display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-top:1px solid var(--line);'});
+    header.appendChild(el('div',{style:'font-weight:600;font-size:14px;'}, anio));
+    header.appendChild(el('span',{style:'color:var(--amber);font-size:12px;display:inline-block;transition:transform .15s;'+(expandido?'transform:rotate(90deg);':'')}, '▶'));
+    header.addEventListener('click', ()=>{ state.expandido.bloqueAnios[key] = !expandido; refrescarFn(); });
+    body.appendChild(header);
+
+    if(expandido){
+      const grid = el('div',{class:'gauges'});
+      for(let m=1; m<=12; m++){
+        const mesKey = anio+'-'+String(m).padStart(2,'0');
+        const s = stats[mesKey];
+        const total = s ? s.total : 0;
+        const mesSeleccionado = state.expandido.bloqueMes[key] === m;
+        const btn = el('div',{class:'gauge', style:'cursor:pointer;'+(mesSeleccionado?'border-color:var(--amber);':'')},[
+          el('div',{class:'val mono', style:'font-size:16px;'}, fmt(total)),
+          el('div',{class:'lbl'}, MESES_NOMBRE[m-1])
+        ]);
+        btn.addEventListener('click', ()=>{
+          state.expandido.bloqueMes[key] = mesSeleccionado ? null : m;
+          refrescarFn();
+        });
+        grid.appendChild(btn);
+      }
+      body.appendChild(grid);
+
+      const mesSel = state.expandido.bloqueMes[key];
+      if(mesSel){
+        const mesKey = anio+'-'+String(mesSel).padStart(2,'0');
+        const bloque = el('div',{style:'margin-top:14px;'});
+        bloque.appendChild(el('div',{style:'font-size:13px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;'}, mesLabel(mesKey)));
+        bloque.appendChild(renderGraficoBarras(calcularHorasPorDia(vuelos, mesKey, campo)));
+        body.appendChild(bloque);
+      }
+    }
+  });
+
+  return body;
+}
+
+// Igual que renderBloqueAnioMes, pero mostrando DOS gráficos por mes (vuelo
+// y simulador) — se usa en Horas de vuelo por instructor/safety.
+function renderBloqueAnioMesDual(vuelosVuelo, vuelosSim, keyBase){
+  const body = el('div',{});
+  const statsVuelo = calcularEstadisticasMensuales(vuelosVuelo, 'TotalHoras');
+  const statsSim = calcularEstadisticasMensuales(vuelosSim, 'Adiestrador_PilotoInstruccion');
+  const anios = Array.from(new Set([...Object.keys(statsVuelo), ...Object.keys(statsSim)].map(k=>k.split('-')[0]))).sort((a,b)=>b-a);
+
+
+  if(anios.length === 0){
+    body.appendChild(el('div',{class:'empty'},'Todavía no hay datos suficientes.'));
+    return body;
+  }
+
+  anios.forEach(anio=>{
+    const key = keyBase+'|'+anio;
+    const expandido = !!state.expandido.bloqueAnios[key];
+    const header = el('div',{style:'display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-top:1px solid var(--line);'});
+    header.appendChild(el('div',{style:'font-weight:600;font-size:14px;'}, anio));
+    header.appendChild(el('span',{style:'color:var(--amber);font-size:12px;display:inline-block;transition:transform .15s;'+(expandido?'transform:rotate(90deg);':'')}, '▶'));
+    header.addEventListener('click', ()=>{ state.expandido.bloqueAnios[key] = !expandido; refrescarEstadisticas(); });
+    body.appendChild(header);
+
+    if(expandido){
+      const grid = el('div',{class:'gauges'});
+      for(let m=1; m<=12; m++){
+        const mesKey = anio+'-'+String(m).padStart(2,'0');
+        const sV = statsVuelo[mesKey];
+        const sS = statsSim[mesKey];
+        const mesSeleccionado = state.expandido.bloqueMes[key] === m;
+        const btn = el('div',{class:'gauge', style:'cursor:pointer;'+(mesSeleccionado?'border-color:var(--amber);':'')},[
+          el('div',{class:'val mono', style:'font-size:12px;'}, 'V '+fmt(sV?sV.total:0)),
+          el('div',{class:'val mono', style:'font-size:12px;color:var(--teal);'}, 'S '+fmt(sS?sS.total:0)),
+          el('div',{class:'lbl'}, MESES_NOMBRE[m-1])
+        ]);
+        btn.addEventListener('click', ()=>{
+          state.expandido.bloqueMes[key] = mesSeleccionado ? null : m;
+          refrescarEstadisticas();
+        });
+        grid.appendChild(btn);
+      }
+      body.appendChild(grid);
+
+      const mesSel = state.expandido.bloqueMes[key];
+      if(mesSel){
+        const mesKey = anio+'-'+String(mesSel).padStart(2,'0');
+        const bloque = el('div',{style:'margin-top:14px;'});
+        bloque.appendChild(el('div',{style:'font-size:13px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;'}, mesLabel(mesKey)));
+        bloque.appendChild(el('div',{style:'font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;'},'Horas de vuelo'));
+        bloque.appendChild(renderGraficoBarras(calcularHorasPorDia(vuelosVuelo, mesKey, 'TotalHoras')));
+        bloque.appendChild(el('div',{style:'font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 6px;'},'Horas de simulador'));
+        bloque.appendChild(renderGraficoBarras(calcularHorasPorDia(vuelosSim, mesKey, 'Adiestrador_PilotoInstruccion')));
+        body.appendChild(bloque);
+      }
+    }
+  });
+
+  return body;
+}
+
+// Agrupa los vuelos por día exacto (YYYY-MM-DD), usando la Fecha del vuelo
+function agruparVuelosPorDia(vuelos){
+  const mapa = {};
+  vuelos.forEach(v=>{
+    const fechaStr = String(v.Fecha||'');
+    const datePart = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr;
+    const m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!m) return;
+    const key = m[1]+'-'+m[2]+'-'+m[3];
+    if(!mapa[key]) mapa[key] = [];
+    mapa[key].push(v);
+  });
+  return mapa;
+}
+
+// Control diario: Año (flecha, contraído) → Mes (12) → Día (según cantidad
+// real de días del mes) → tabla con el mismo formato del Registro de vuelos.
+function renderControlDiario(todos){
+  const body = el('div',{});
+  body.appendChild(el('div',{class:'sub'},'Detalle día por día: todos los vuelos y sesiones de simulador registrados esa fecha.'));
+
+  const porDia = agruparVuelosPorDia(todos);
+  const anios = Array.from(new Set(Object.keys(porDia).map(k=>k.split('-')[0]))).sort((a,b)=>b-a);
+
+
+  if(anios.length === 0){
+    body.appendChild(el('div',{class:'empty'},'Todavía no hay datos suficientes.'));
+    return body;
+  }
+
+  anios.forEach(anio=>{
+    const expandidoAnio = !!state.expandido.controlDiarioAnios[anio];
+    const header = el('div',{style:'display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-top:1px solid var(--line);'});
+    header.appendChild(el('div',{style:'font-weight:600;font-size:14px;'}, anio));
+    header.appendChild(el('span',{style:'color:var(--amber);font-size:12px;display:inline-block;transition:transform .15s;'+(expandidoAnio?'transform:rotate(90deg);':'')}, '▶'));
+    header.addEventListener('click', ()=>{ state.expandido.controlDiarioAnios[anio] = !expandidoAnio; refrescarEstadisticas(); });
+    body.appendChild(header);
+
+    if(expandidoAnio){
+      const grid = el('div',{class:'gauges'});
+      for(let m=1; m<=12; m++){
+        const mesKey = anio+'-'+String(m).padStart(2,'0');
+        let totalMes = 0;
+        Object.keys(porDia).forEach(k=>{
+          if(k.indexOf(mesKey) === 0) totalMes += porDia[k].reduce((s,v)=> s+(Number(v.TotalHoras)||0), 0);
+        });
+        const mesSeleccionado = state.expandido.controlDiarioMes[anio] === m;
+        const btn = el('div',{class:'gauge', style:'cursor:pointer;'+(mesSeleccionado?'border-color:var(--amber);':'')},[
+          el('div',{class:'val mono', style:'font-size:16px;'}, fmt(totalMes)),
+          el('div',{class:'lbl'}, MESES_NOMBRE[m-1])
+        ]);
+        btn.addEventListener('click', ()=>{
+          state.expandido.controlDiarioMes[anio] = mesSeleccionado ? null : m;
+          refrescarEstadisticas();
+        });
+        grid.appendChild(btn);
+      }
+      body.appendChild(grid);
+
+      const mesSel = state.expandido.controlDiarioMes[anio];
+      if(mesSel){
+        const mesKey = anio+'-'+String(mesSel).padStart(2,'0');
+        const diasDelMes = diasEnMes(mesKey);
+        const keyMes = anio+'|'+mesSel;
+
+        body.appendChild(el('div',{style:'border-top:1px solid var(--line);margin:16px 0 4px;'}));
+        body.appendChild(el('div',{style:'font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;'}, 'Días de '+mesLabel(mesKey)));
+
+        const ahora = new Date();
+        const hoyKey = ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
+
+        const diaGrid = el('div',{class:'dias-grid'});
+        for(let d=1; d<=diasDelMes; d++){
+          const diaKey = mesKey+'-'+String(d).padStart(2,'0');
+          const vuelosDia = porDia[diaKey] || [];
+          const totalDia = vuelosDia.reduce((s,v)=> s+(Number(v.TotalHoras)||0), 0);
+          const diaSeleccionado = state.expandido.controlDiarioDia[keyMes] === d;
+          const tieneDatos = vuelosDia.length > 0;
+          const esHoy = diaKey === hoyKey;
+          let claseDia = 'gauge-dia'+(tieneDatos?'':' sin-datos')+(diaSeleccionado?' seleccionado':'')+(esHoy?' es-hoy':'');
+          const btn = el('div',{class:claseDia, style:tieneDatos?'cursor:pointer;':''},[
+            el('div',{class:'val mono'}, tieneDatos ? fmt(totalDia) : '-'),
+            el('div',{class:'lbl'}, String(d))
+          ]);
+          if(tieneDatos){
+            btn.addEventListener('click', ()=>{
+              state.expandido.controlDiarioDia[keyMes] = diaSeleccionado ? null : d;
+              refrescarEstadisticas();
+            });
+          }
+          diaGrid.appendChild(btn);
+        }
+        body.appendChild(diaGrid);
+
+        const diaSel = state.expandido.controlDiarioDia[keyMes];
+        if(diaSel){
+          const diaKeyFull = mesKey+'-'+String(diaSel).padStart(2,'0');
+          const vuelosDia = porDia[diaKeyFull] || [];
+          const bloque = el('div',{style:'margin-top:14px;'});
+          bloque.appendChild(el('div',{style:'font-size:13px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;'}, formatFecha(diaKeyFull)));
+          bloque.appendChild(renderTable(vuelosDia, {mostrarPiloto:true}));
+          body.appendChild(bloque);
+        }
+      }
+    }
+  });
+
+  return body;
+}
+
+// Selector de Año/Mes + botón para generar el informe imprimible
+function renderInformeMensual(pilotos, todos){
+  const body = el('div',{});
+  body.appendChild(el('div',{class:'sub'},'Arma un informe prolijo del mes elegido, listo para imprimir o guardar como PDF desde el propio navegador.'));
+
+  const stats = calcularEstadisticasMensuales(todos);
+  const anios = Array.from(new Set(Object.keys(stats).map(k=>k.split('-')[0]))).sort((a,b)=>b-a);
+  const anioActual = String(new Date().getFullYear());
+  if(anios.indexOf(anioActual) === -1) anios.unshift(anioActual);
+
+  const grid = el('div',{class:'grid'});
+  const selAnio = el('select',{});
+  selAnio.style.cssText = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
+  anios.forEach(a=> selAnio.appendChild(el('option',{value:a}, a)));
+
+  const selMes = el('select',{});
+  selMes.style.cssText = selAnio.style.cssText;
+  MESES_NOMBRE.forEach((nombreMes,idx)=> selMes.appendChild(el('option',{value:String(idx+1)}, nombreMes)));
+  selMes.value = String(new Date().getMonth()+1);
+
+  grid.appendChild(campoConEtiqueta('Año', selAnio));
+  grid.appendChild(campoConEtiqueta('Mes', selMes));
+  body.appendChild(grid);
+
+  const btn = el('button',{class:'btn-primary', style:'max-width:240px;margin-top:14px;'}, '🖨 Generar / Imprimir informe');
+  btn.addEventListener('click', ()=>{
+    const mesKey = selAnio.value+'-'+String(selMes.value).padStart(2,'0');
+    generarInformeMensual(pilotos, todos, mesKey);
+  });
+  body.appendChild(btn);
+  return body;
+}
+
+// Arma el contenido del informe (tablas por piloto, por avión, por instructor
+// y totales generales) y dispara la impresión del navegador.
+// Informe individual de un piloto: resumen histórico, progreso mes a mes,
+// cercanía a 250h y el detalle completo de todos sus vuelos.
+// Desglose completo por mes (todos los campos, no solo el total) para el
+// informe individual de piloto.
+function calcularResumenMensualCompleto(vuelos){
+  const mapa = {};
+  vuelos.forEach(v=>{
+    const fechaStr = String(v.Fecha||'');
+    const dp = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr;
+    const m = dp.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!m) return;
+    const mesKey = m[1]+'-'+m[2];
+    if(!mapa[mesKey]) mapa[mesKey] = {adDia:0,adNoche:0,trDia:0,trNoche:0,total:0,aterrizajes:0,multimotor:0,instrumentos:0,capota:0,simulador:0};
+    const r = mapa[mesKey];
+    r.adDia += Number(v.AD_Dia_Piloto)||0; r.adNoche += Number(v.AD_Noche_Piloto)||0;
+    r.trDia += Number(v.TR_Dia_Piloto)||0; r.trNoche += Number(v.TR_Noche_Piloto)||0;
+    r.total += Number(v.TotalHoras)||0;
+    r.aterrizajes += Number(v.Aterrizajes)||0; r.multimotor += Number(v.Multimotor)||0;
+    r.instrumentos += Number(v.Instr_Real_Piloto)||0; r.capota += Number(v.Capota)||0;
+    r.simulador += Number(v.Adiestrador_PilotoInstruccion)||0;
+  });
+  return mapa;
+}
+
+function generarInformePiloto(p){
+  const cont = document.getElementById('print-report');
+  cont.innerHTML = '';
+
+  const hoy = new Date();
+  cont.appendChild(el('div',{class:'rep-header'},[
+    el('h1',{}, 'DREAM FLY — Informe individual de piloto'),
+    el('p',{}, p.nombre+' '+p.apellido+' · Licencia '+(p.licencia||'-')+' · N° '+(p.numero||'-')+' · Legajo '+(p.legajo||'-')),
+    el('p',{}, 'Generado el '+String(hoy.getDate()).padStart(2,'0')+'/'+String(hoy.getMonth()+1).padStart(2,'0')+'/'+hoy.getFullYear())
+  ]));
+
+  // --- Resumen histórico total ---
+  cont.appendChild(el('h2',{},'Resumen histórico'));
+  const t = p.totales || {};
+  const tablaResumen = el('table',{});
+  tablaResumen.appendChild(el('tbody',{},[
+    ['Sobre aeródromo · Día', fmt(t.AD_Dia_Piloto)],
+    ['Sobre aeródromo · Noche', fmt(t.AD_Noche_Piloto)],
+    ['Travesía · Día', fmt(t.TR_Dia_Piloto)],
+    ['Travesía · Noche', fmt(t.TR_Noche_Piloto)],
+    ['Multimotor', fmt(t.Multimotor)],
+    ['Instrumentos', fmt(t.Instr_Real_Piloto)],
+    ['Aterrizajes', fmt(t.Aterrizajes)],
+    ['Capota', fmt(t.Capota)],
+    ['Simulador', fmt(t.Adiestrador_PilotoInstruccion)],
+    ['TOTAL HISTÓRICO', fmt(t.TotalHoras)]
+  ].map(([lbl,val])=> el('tr',{},[el('td',{},lbl), el('td',{},val)]))));
+  cont.appendChild(tablaResumen);
+
+  // --- Progreso mes a mes ---
+  cont.appendChild(el('h2',{},'Progreso mes a mes'));
+  const resumenMensual = calcularResumenMensualCompleto(p.vuelos||[]);
+  const meses = Object.keys(resumenMensual).sort();
+  const tablaProgreso = el('table',{});
+  tablaProgreso.appendChild(el('thead',{},[el('tr',{},[
+    'Mes','AD Día','AD Noche','TR Día','TR Noche','Aterr.','Multim.','Instrum.','Capota','Simulador','Total mes','Acumulado'
+  ].map(txt=>el('th',{},txt)))]));
+  const tbodyProgreso = el('tbody',{});
+  let acumulado = 0;
+  if(meses.length === 0){
+    tbodyProgreso.appendChild(el('tr',{},[el('td',{colspan:'12'},'Sin vuelos registrados.')]));
+  } else {
+    meses.forEach(mesKey=>{
+      const r = resumenMensual[mesKey];
+      acumulado += r.total;
+      tbodyProgreso.appendChild(el('tr',{},[
+        mesLabel(mesKey), fmt(r.adDia), fmt(r.adNoche), fmt(r.trDia), fmt(r.trNoche),
+        fmt(r.aterrizajes), fmt(r.multimotor), fmt(r.instrumentos), fmt(r.capota), fmt(r.simulador),
+        fmt(r.total), fmt(acumulado)
+      ].map(txt=>el('td',{},txt))));
+    });
+  }
+  tablaProgreso.appendChild(tbodyProgreso);
+  cont.appendChild(tablaProgreso);
+
+  window.print();
+}
+
+function generarInformeMensual(pilotos, todos, mesKey){
+  const cont = document.getElementById('print-report');
+  cont.innerHTML = '';
+
+  const hoy = new Date();
+  cont.appendChild(el('div',{class:'rep-header'},[
+    el('h1',{}, 'DREAM FLY — Informe mensual de horas voladas'),
+    el('p',{}, mesLabel(mesKey)+' · Generado el '+String(hoy.getDate()).padStart(2,'0')+'/'+String(hoy.getMonth()+1).padStart(2,'0')+'/'+hoy.getFullYear())
+  ]));
+
+  // --- Tabla por piloto ---
+  cont.appendChild(el('h2',{},'Horas por piloto'));
+  const tablaPilotos = el('table',{});
+  tablaPilotos.appendChild(el('thead',{},[el('tr',{},[
+    'Piloto','Licencia','AD Día','AD Noche','TR Día','TR Noche','Total mes','Total histórico',
+    'Aterr.','Multim.','Instrum.','Capota','Simulador'
+  ].map(t=>el('th',{},t)))]));
+  const tbodyPilotos = el('tbody',{});
+  let totMes={adDia:0,adNoche:0,trDia:0,trNoche:0,total:0,aterrizajes:0,multimotor:0,instrumentos:0,capota:0,simulador:0};
+  pilotos.forEach(p=>{
+    const vuelosMes = (p.vuelos||[]).filter(v=>{
+      const f = String(v.Fecha||''); const dp = f.includes('T')?f.split('T')[0]:f;
+      return dp.indexOf(mesKey)===0;
+    });
+    const r = {adDia:0,adNoche:0,trDia:0,trNoche:0,total:0,aterrizajes:0,multimotor:0,instrumentos:0,capota:0,simulador:0};
+    vuelosMes.forEach(v=>{
+      r.adDia += Number(v.AD_Dia_Piloto)||0; r.adNoche += Number(v.AD_Noche_Piloto)||0;
+      r.trDia += Number(v.TR_Dia_Piloto)||0; r.trNoche += Number(v.TR_Noche_Piloto)||0;
+      r.total += Number(v.TotalHoras)||0;
+      r.aterrizajes += Number(v.Aterrizajes)||0; r.multimotor += Number(v.Multimotor)||0;
+      r.instrumentos += Number(v.Instr_Real_Piloto)||0; r.capota += Number(v.Capota)||0;
+      r.simulador += Number(v.Adiestrador_PilotoInstruccion)||0;
+    });
+    Object.keys(totMes).forEach(k=> totMes[k]+=r[k]);
+    tbodyPilotos.appendChild(el('tr',{},[
+      p.nombre+' '+p.apellido, p.licencia||'-', fmt(r.adDia), fmt(r.adNoche), fmt(r.trDia), fmt(r.trNoche),
+      fmt(r.total), fmt(p.totales?p.totales.TotalHoras:0), fmt(r.aterrizajes), fmt(r.multimotor),
+      fmt(r.instrumentos), fmt(r.capota), fmt(r.simulador)
+    ].map(t=>el('td',{},String(t)))));
+  });
+  tablaPilotos.appendChild(tbodyPilotos);
+  cont.appendChild(tablaPilotos);
+
+  // --- Tabla por avión ---
+  cont.appendChild(el('h2',{},'Horas por avión'));
+  const vuelosMesTodos = todos.filter(v=>{
+    const f = String(v.Fecha||''); const dp = f.includes('T')?f.split('T')[0]:f;
+    return dp.indexOf(mesKey)===0;
+  });
+  const porAvion = {};
+  vuelosMesTodos.forEach(v=>{ if(!v.Matricula) return; porAvion[v.Matricula] = (porAvion[v.Matricula]||0) + (Number(v.TotalHoras)||0); });
+  const tablaAvion = el('table',{});
+  tablaAvion.appendChild(el('thead',{},[el('tr',{},[el('th',{},'Matrícula'), el('th',{},'Horas del mes')])]));
+  const tbodyAvion = el('tbody',{});
+  Object.entries(porAvion).sort((a,b)=>b[1]-a[1]).forEach(([m,h])=> tbodyAvion.appendChild(el('tr',{},[el('td',{},m), el('td',{},fmt(h))])));
+  if(Object.keys(porAvion).length===0) tbodyAvion.appendChild(el('tr',{},[el('td',{colspan:'2'},'Sin datos este mes.')]));
+  tablaAvion.appendChild(tbodyAvion);
+  cont.appendChild(tablaAvion);
+
+  // --- Tabla por instructor/safety ---
+  cont.appendChild(el('h2',{},'Horas por instructor/safety'));
+  const porInstr = {};
+  vuelosMesTodos.forEach(v=>{
+    if(!v.Certificaciones) return;
+    if(!porInstr[v.Certificaciones]) porInstr[v.Certificaciones] = {vuelo:0, sim:0};
+    if(v.TipoVuelo==='SIMULADOR') porInstr[v.Certificaciones].sim += (Number(v.Adiestrador_PilotoInstruccion)||0);
+    else porInstr[v.Certificaciones].vuelo += (Number(v.TotalHoras)||0);
+  });
+  const tablaInstr = el('table',{});
+  tablaInstr.appendChild(el('thead',{},[el('tr',{},[el('th',{},'Instructor/Safety'), el('th',{},'H. Vuelo'), el('th',{},'H. Simulador')])]));
+  const tbodyInstr = el('tbody',{});
+  Object.entries(porInstr).sort((a,b)=>(b[1].vuelo+b[1].sim)-(a[1].vuelo+a[1].sim)).forEach(([nombre,h])=>
+    tbodyInstr.appendChild(el('tr',{},[el('td',{},nombre), el('td',{},fmt(h.vuelo)), el('td',{},fmt(h.sim))]))
+  );
+  if(Object.keys(porInstr).length===0) tbodyInstr.appendChild(el('tr',{},[el('td',{colspan:'3'},'Sin datos este mes.')]));
+  tablaInstr.appendChild(tbodyInstr);
+  cont.appendChild(tablaInstr);
+
+  // --- Totales generales ---
+  cont.appendChild(el('h2',{},'Totales generales de la escuela — '+mesLabel(mesKey)));
+  const tablaTotales = el('table',{});
+  tablaTotales.appendChild(el('tbody',{},[
+    el('tr',{},[el('td',{},'Total de horas voladas'), el('td',{},fmt(totMes.total)+' h')]),
+    el('tr',{},[el('td',{},'Aterrizajes'), el('td',{},fmt(totMes.aterrizajes))]),
+    el('tr',{},[el('td',{},'Multimotor'), el('td',{},fmt(totMes.multimotor)+' h')]),
+    el('tr',{},[el('td',{},'Instrumentos'), el('td',{},fmt(totMes.instrumentos)+' h')]),
+    el('tr',{},[el('td',{},'Capota'), el('td',{},fmt(totMes.capota)+' h')]),
+    el('tr',{},[el('td',{},'Simulador'), el('td',{},fmt(totMes.simulador)+' h')])
+  ]));
+  cont.appendChild(tablaTotales);
+
+  window.print();
+}
+
+function renderHorasDreamFly(todos){
+  const body = el('div',{});
+  body.appendChild(el('div',{class:'sub'},'Horas voladas por día, sumando a todos los pilotos (Sobre aeródromo + Travesía).'));
+
+  const stats = calcularEstadisticasMensuales(todos);
+  const aniosConDatos = new Set(Object.keys(stats).map(k=>k.split('-')[0]));
+  const aniosSet = new Set(aniosConDatos);
+  (state.aniosExtra||[]).forEach(a=> aniosSet.add(String(a)));
+  const anios = Array.from(aniosSet).sort((a,b)=>b-a);
+
+  // Total histórico (todo el tiempo, todos los pilotos)
+  const totalHistorico = Object.values(stats).reduce((s,x)=>s+x.total,0);
+  body.appendChild(el('div',{class:'gauges', style:'margin:12px 0 4px;'},[
+    el('div',{class:'gauge'},[
+      el('div',{class:'val mono', style:'font-size:24px;'}, fmt(totalHistorico)),
+      el('div',{class:'lbl'}, 'Total histórico')
+    ])
+  ]));
+
+
+  if(anios.length === 0){
+    body.appendChild(el('div',{class:'empty'},'Todavía no hay datos suficientes.'));
+  } else {
+    anios.forEach(anio=>{
+      const esEliminable = !aniosConDatos.has(anio) && state.aniosExtra.indexOf(Number(anio)) !== -1;
+      const expandido = !!state.expandido.horasDreamFlyAnios[anio];
+      const header = el('div',{style:'display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-top:1px solid var(--line);gap:10px;'});
+      const izq = el('div',{style:'display:flex;align-items:center;gap:14px;'},[el('div',{style:'font-weight:600;font-size:14px;'}, anio)]);
+      if(esEliminable){
+        const del = el('span',{class:'back-link', style:'color:var(--danger);'}, 'Eliminar');
+        del.addEventListener('click', (ev)=>{
+          ev.stopPropagation();
+          state.aniosExtra = state.aniosExtra.filter(x=> x !== Number(anio));
+          refrescarEstadisticas();
+        });
+        izq.appendChild(del);
+      }
+      header.appendChild(izq);
+      header.appendChild(el('span',{style:'color:var(--amber);font-size:12px;display:inline-block;transition:transform .15s;'+(expandido?'transform:rotate(90deg);':'')}, '▶'));
+      header.addEventListener('click', ()=>{ state.expandido.horasDreamFlyAnios[anio] = !expandido; refrescarEstadisticas(); });
+      body.appendChild(header);
+
+      if(expandido){
+        const grid = el('div',{class:'gauges'});
+        for(let m=1; m<=12; m++){
+          const mesKey = anio+'-'+String(m).padStart(2,'0');
+          const s = stats[mesKey];
+          const total = s ? s.total : 0;
+          const mesSeleccionado = state.expandido.horasDreamFlyMes[anio] === m;
+          const btn = el('div',{class:'gauge', style:'cursor:pointer;'+(mesSeleccionado?'border-color:var(--amber);':'')},[
+            el('div',{class:'val mono', style:'font-size:16px;'}, fmt(total)),
+            el('div',{class:'lbl'}, MESES_NOMBRE[m-1])
+          ]);
+          btn.addEventListener('click', ()=>{
+            state.expandido.horasDreamFlyMes[anio] = mesSeleccionado ? null : m;
+            refrescarEstadisticas();
+          });
+          grid.appendChild(btn);
+        }
+        body.appendChild(grid);
+
+        const mesSel = state.expandido.horasDreamFlyMes[anio];
+        if(mesSel){
+          const mesKey = anio+'-'+String(mesSel).padStart(2,'0');
+          const bloque = el('div',{style:'margin-top:14px;'});
+          bloque.appendChild(el('div',{style:'font-size:13px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;'}, mesLabel(mesKey)));
+          bloque.appendChild(renderGraficoBarras(calcularHorasPorDia(todos, mesKey, 'TotalHoras')));
+
+          const s = stats[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
+          const rangos = rangosSemana(mesKey);
+          const semanasWrap = el('div',{class:'gauges', style:'margin-top:14px;'});
+          rangos.forEach((r,i)=>{
+            const totalRango = s.semanas[i+1] || 0;
+            const diasRango = r[1]-r[0]+1;
+            const promedioRango = totalRango/diasRango;
+            semanasWrap.appendChild(el('div',{class:'gauge'},[
+              el('div',{style:'font-size:11px;color:var(--muted);margin-bottom:8px;'}, '{ '+rangoLabel(r)+' }'),
+              el('div',{style:'font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;'}, 'H. Totales'),
+              el('div',{class:'val mono', style:'font-size:15px;'}, fmt(totalRango)),
+              el('div',{style:'font-size:9px;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-top:6px;'}, 'Promedio'),
+              el('div',{class:'val mono', style:'font-size:15px;color:var(--teal);'}, fmt(promedioRango))
+            ]));
+          });
+          bloque.appendChild(semanasWrap);
+
+          body.appendChild(bloque);
+        }
+      }
+    });
+  }
+
+  const addBtn = el('button',{class:'btn-secondary', style:'margin-top:14px;'}, '+ Agregar año');
+  addBtn.addEventListener('click', ()=>{
+    const siguiente = anios.length ? (Math.max(...anios.map(Number))+1) : new Date().getFullYear();
+    const input = prompt('¿Qué año querés agregar?', String(siguiente));
+    if(!input) return;
+    const anioNum = parseInt(input,10);
+    if(isNaN(anioNum)) return;
+    if(state.aniosExtra.indexOf(anioNum) === -1) state.aniosExtra.push(anioNum);
+    refrescarEstadisticas();
+  });
+  body.appendChild(addBtn);
+
+  return body;
+}
+
+
+/* ---------------- PROCEDIMIENTOS PILOTOS DFY ---------------- */
+// Cuando Luis pase los documentos, se agregan acá: cada categoría es una
+// lista de { titulo, url }. El link puede ser, por ejemplo, un archivo
+// de Google Drive compartido como "Cualquiera con el enlace puede ver".
+const DOCUMENTOS_PROCEDIMIENTOS = {
+  INGRESO: [
+    { titulo: 'Ver documentos de Ingreso', url: 'https://drive.google.com/drive/folders/1kHsMfzztp4PHh1GbCphNGqDWRqdxn0AG' }
+  ],
+  MIGRACION: [
+    { titulo: 'Ver documentos de Migración', url: 'https://drive.google.com/drive/folders/1tX_BvNNQ4k8Y2ICzfHPKca-DuAAnZr3-' }
+  ],
+  CONVALIDACION: [
+    { titulo: 'Ver documentos de Convalidación', url: 'https://drive.google.com/drive/folders/1kjId_Z2gVc2y2YSTSxHUkY61dgABCkys' }
+  ]
+};
+
+function renderProcedimientos(){
+  const wrap = el('div',{});
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Procedimientos Pilotos DFY'));
+  card.appendChild(el('div',{class:'sub'},'Elige una categoría para ver los documentos disponibles.'));
+
+  const btnRow = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;'});
+  const categorias = [['INGRESO','Ingreso'],['MIGRACION','Migración'],['CONVALIDACION','Convalidación']];
+  categorias.forEach(([key,label])=>{
+    const b = el('button',{class:'tab'+(state.procCategoria===key?' active':''), style:'border:1px solid var(--line);border-radius:8px;'}, label);
+    b.addEventListener('click', ()=>{ state.procCategoria = (state.procCategoria===key ? null : key); render(); });
+    btnRow.appendChild(b);
+  });
+  card.appendChild(btnRow);
+  wrap.appendChild(card);
+
+  if(state.procCategoria){
+    const docs = DOCUMENTOS_PROCEDIMIENTOS[state.procCategoria] || [];
+    const docCard = el('div',{class:'card'});
+    docCard.appendChild(el('h3',{}, state.procCategoria));
+    if(docs.length === 0){
+      docCard.appendChild(el('div',{class:'empty'},'Todavía no hay documentos cargados en esta categoría.'));
+    } else {
+      const list = el('div',{class:'pilot-list'});
+      docs.forEach(doc=>{
+        const item = el('a',{href:doc.url, target:'_blank', rel:'noopener', class:'pilot-item', style:'text-decoration:none;'},[
+          el('div',{class:'name'}, doc.titulo),
+        ]);
+        list.appendChild(item);
+      });
+      docCard.appendChild(list);
+    }
+    wrap.appendChild(docCard);
+  }
+  return wrap;
+}
+
+/* ---------------- VISTA PILOTO ---------------- */
+async function renderPiloto(){
+  const app = el('div',{class:'app'});
+  app.appendChild(renderTopbar('Licencia '+(state.session.licencia||'-')+' · Legajo '+(state.session.legajo||'-')));
+
+  const tabs = el('div',{class:'tabs'});
+  const tabDefs = [['nuevo','Nuevo vuelo'],['bitacora','Mi bitácora'],['reporte','Reporte'],['migratorio','Estado Migratorio'],['procedimientos','Procedimientos Pilotos DFY']];
+  tabDefs.forEach(([key,label])=>{
+    const t = el('button',{class:'tab'+(state.tab===key?' active':'')},label);
+    t.addEventListener('click', ()=>{state.tab=key; state.editingVuelo=null; state.paginaTabla=null; render();});
+    tabs.appendChild(t);
+  });
+  app.appendChild(tabs);
+
+  const content = el('div',{},[renderSpinner()]);
+  app.appendChild(content);
+  document.getElementById('root').innerHTML='';
+  document.getElementById('root').appendChild(app);
+
+  if(state.tab==='reporte'){
+    content.innerHTML='';
+    content.appendChild(renderReporte());
+    return;
+  }
+  if(state.tab==='migratorio'){
+    const r = await apiGet({action:'estadoMigratorio', usuario: state.session.usuario});
+    content.innerHTML='';
+    if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
+    content.appendChild(renderMigratorio(r.estado));
+    return;
+  }
+  if(state.tab==='procedimientos'){
+    content.innerHTML='';
+    content.appendChild(renderProcedimientos());
+    return;
+  }
+
+  const [r, catRes, hiRes] = await Promise.all([
+    apiGet({action:'misVuelos', usuario: state.session.usuario}),
+    apiGet({action:'catalogos'}),
+    apiGet({action:'horasIniciales'})
+  ]);
+  const catalogos = catRes.ok ? catRes : {aviones:[],simuladores:[],instructores:[]};
+  content.innerHTML='';
+  if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
+
+  content.appendChild(renderGauges(r.totales));
+  if(state.tab==='nuevo'){
+    content.appendChild(renderForm(()=>{ state.paginaTabla=null; render(); }, null, r.totales.TotalHoras, null, catalogos));
+  } else if(state.editingVuelo){
+    content.appendChild(renderForm(
+      ()=>{ state.editingVuelo=null; render(); },
+      state.editingVuelo,
+      r.totales.TotalHoras,
+      ()=>{ state.editingVuelo=null; render(); },
+      catalogos
+    ));
+  } else {
+    content.appendChild(renderTable(r.vuelos, {
+      onEdit: (v)=>{ state.editingVuelo=v; render(); },
+      onDelete: async (v)=>{
+        if(!confirm('¿Eliminar este vuelo? Esta acción no se puede deshacer.')) return;
+        try{
+          const res = await apiPost({action:'eliminarVuelo', ID:v.ID, Usuario: state.session.usuario});
+          if(res.ok){ showToast('Vuelo eliminado ✓'); render(); }
+          else { showToast(res.error || 'Error al eliminar'); }
+        }catch(e){ showToast('No se pudo conectar.'); }
+      }
+    }));
+    content.appendChild(renderHorasIniciales(hiRes.ok ? hiRes.horas : null));
+  }
+}
+
+/* ---------------- VISTA ADMIN ---------------- */
+async function renderAdmin(){
+  const app = el('div',{class:'app'});
+  app.appendChild(renderTopbar('Panel del instructor'));
+
+  const tabs = el('div',{class:'tabs'});
+  const tabDefsAdmin = [['inicio','Inicio'],['pilotos','Pilotos'],['reportes','Reportes'],['estadisticas','Estadísticas']];
+  tabDefsAdmin.forEach(([key,label])=>{
+    const t = el('button',{class:'tab'+(state.adminTab===key?' active':'')},label);
+    t.addEventListener('click', ()=>{state.adminTab=key; state.adminSelected=null; state.mostrarFormPiloto=false; state.expandido.secciones={}; state.expandido.horasDreamFlyAnios={}; state.expandido.horasDreamFlyMes={}; state.paginaTabla=null; render();});
+    tabs.appendChild(t);
+  });
+  app.appendChild(tabs);
+
+  const content = el('div',{},[renderSpinner()]);
+  app.appendChild(content);
+  document.getElementById('root').innerHTML='';
+  document.getElementById('root').appendChild(app);
+
+  if(state.adminTab==='inicio'){
+    const r = await apiGet({action:'alertasAdmin'});
+    content.innerHTML='';
+    if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
+
+    const cardNuevos = el('div',{class:'card'});
+    cardNuevos.appendChild(el('h3',{},'Nuevos vuelos'));
+    cardNuevos.appendChild(el('div',{class:'sub'},'Vuelos y sesiones de simulador registrados hoy.'));
+    if(!r.nuevosVuelosHoy || r.nuevosVuelosHoy.length === 0){
+      cardNuevos.appendChild(el('div',{class:'empty'},'Todavía no se registró ningún vuelo hoy.'));
+    } else {
+      const list = el('div',{class:'pilot-list'});
+      r.nuevosVuelosHoy.forEach(v=>{
+        const item = el('div',{class:'pilot-item', style:'cursor:default;'},[
+          el('div',{},[
+            el('div',{class:'name'}, v.piloto),
+            el('div',{class:'meta'}, formatFecha(v.fecha)+' · '+(v.tipoVuelo||'-')+' · '+(v.matricula||'-')+' · '+(v.instructor||'-')+' · '+(v.desde||'-')+' → '+(v.hasta||'-'))
+          ]),
+          el('div',{class:'hours mono'}, fmt(v.horas)+' h')
+        ]);
+        list.appendChild(item);
+      });
+      cardNuevos.appendChild(list);
+    }
+    content.appendChild(cardNuevos);
+
+    const cardReportes = el('div',{class:'card'});
+    cardReportes.appendChild(el('h3',{},'Reportes sin leer'));
+    if(r.reportesNoLeidos > 0){
+      const irBtn = el('button',{class:'btn-secondary', style:'margin-top:8px;'}, 'Ver '+r.reportesNoLeidos+' reporte'+(r.reportesNoLeidos===1?'':'s')+' nuevo'+(r.reportesNoLeidos===1?'':'s'));
+      irBtn.addEventListener('click', ()=>{ state.adminTab='reportes'; render(); });
+      cardReportes.appendChild(el('div',{class:'val mono', style:'font-size:26px;color:var(--amber);margin-bottom:4px;'}, String(r.reportesNoLeidos)));
+      cardReportes.appendChild(irBtn);
+    } else {
+      cardReportes.appendChild(el('div',{class:'sub'},'No hay reportes nuevos.'));
+    }
+    content.appendChild(cardReportes);
+
+    const cardPrecarias = el('div',{class:'card'});
+    cardPrecarias.appendChild(el('h3',{},'Precarias por vencer (próximos 30 días)'));
+    if(r.precariasPorVencer.length === 0){
+      cardPrecarias.appendChild(el('div',{class:'sub'},'No hay precarias por vencer en los próximos 30 días.'));
+    } else {
+      const list = el('div',{class:'pilot-list'});
+      r.precariasPorVencer.forEach(p=>{
+        const urgente = p.dias < 0;
+        const etiqueta = urgente ? 'Vencida hace '+Math.abs(p.dias)+' día'+(Math.abs(p.dias)===1?'':'s') : (p.dias===0 ? 'Vence hoy' : 'Vence en '+p.dias+' día'+(p.dias===1?'':'s'));
+        const item = el('div',{class:'pilot-item'},[
+          el('div',{},[
+            el('div',{class:'name'}, (p.nombre||p.usuario)+' '+(p.apellido||'')),
+            el('div',{class:'meta'}, formatFecha(p.fechaVence))
+          ]),
+          el('div',{class:'hours mono', style:'font-size:13px;color:'+(urgente?'var(--danger)':'var(--amber)')+';'}, etiqueta)
+        ]);
+        item.addEventListener('click', ()=>{ state.adminTab='pilotos'; state.adminSelected=p.usuario; state.paginaTabla=null; render(); });
+        list.appendChild(item);
+      });
+      cardPrecarias.appendChild(list);
+    }
+    content.appendChild(cardPrecarias);
+
+    const cardHoras250 = el('div',{class:'card'});
+    cardHoras250.appendChild(el('h3',{},'Pilotos próximos 250h'));
+    if(!r.pilotosProximos250 || r.pilotosProximos250.length === 0){
+      cardHoras250.appendChild(el('div',{class:'sub'},'No hay pilotos entre 200 y 250 horas (o por encima) pendientes de revisar.'));
+    } else {
+      const list = el('div',{class:'pilot-list'});
+      r.pilotosProximos250.forEach(p=>{
+        const item = el('div',{class:'pilot-item'});
+        const izq = el('div',{style:'cursor:pointer;flex:1;'},[
+          el('div',{class:'name'}, (p.nombre||p.usuario)+' '+(p.apellido||'')),
+          el('div',{class:'meta'}, fmt(p.horas)+' horas totales')
+        ]);
+        izq.addEventListener('click', ()=>{ state.adminTab='pilotos'; state.adminSelected=p.usuario; state.paginaTabla=null; render(); });
+        item.appendChild(izq);
+        const del = el('span',{class:'back-link', style:'color:var(--danger);white-space:nowrap;'}, 'Eliminar notificación');
+        del.addEventListener('click', async (ev)=>{
+          ev.stopPropagation();
+          const res = await apiPost({action:'descartarNotificacion250', Usuario:p.usuario});
+          if(res.ok){ showToast('Notificación eliminada ✓'); render(); } else { showToast(res.error || 'Error al eliminar'); }
+        });
+        item.appendChild(del);
+        list.appendChild(item);
+      });
+      cardHoras250.appendChild(list);
+    }
+    content.appendChild(cardHoras250);
+    return;
+  }
+
+  if(state.adminTab==='reportes'){
+    const r = await apiGet({action:'reportesAdmin'});
+    content.innerHTML='';
+    if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
+    if(!r.reportes.length){ content.appendChild(el('div',{class:'empty'},'Todavía no hay reportes.')); return; }
+    r.reportes.forEach(rep=>{
+      const card = el('div',{class:'card'});
+      card.appendChild(el('div',{style:'white-space:pre-wrap;font-size:13px;line-height:1.5;'}, rep.mensaje));
+      const pie = el('div',{style:'display:flex;align-items:center;justify-content:space-between;margin-top:10px;'});
+      pie.appendChild(el('div',{style:'color:var(--muted);font-size:11px;'}, formatFechaHora(rep.fecha)));
+      const del = el('span',{class:'back-link', style:'color:var(--danger);'}, 'Eliminar');
+      del.addEventListener('click', async ()=>{
+        if(!confirm('¿Eliminar este reporte? Esta acción no se puede deshacer.')) return;
+        const res = await apiPost({action:'eliminarReporte', ID: rep.id});
+        if(res.ok){ showToast('Reporte eliminado ✓'); render(); }
+        else { showToast(res.error || 'Error al eliminar'); }
+      });
+      pie.appendChild(del);
+      card.appendChild(pie);
+      content.appendChild(card);
+    });
+    apiPost({action:'marcarReportesLeidos'}).catch(()=>{});
+    return;
+  }
+
+  if(state.adminTab==='estadisticas'){
+    const [r, catRes] = await Promise.all([
+      apiGet({action:'resumenAdmin'}),
+      apiGet({action:'catalogos'})
+    ]);
+    content.innerHTML='';
+    if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
+    const catalogos = catRes.ok ? catRes : {aviones:[],simuladores:[],instructores:[]};
+    state.cacheEstadisticas = { pilotos: r.pilotos, catalogos: catalogos };
+    const estContainer = el('div',{id:'estadisticas-container'});
+    estContainer.appendChild(renderEstadisticasAdmin(r.pilotos, catalogos));
+    content.appendChild(estContainer);
+    return;
+  }
+
+  const r = await apiGet({action:'resumenAdmin'});
+  content.innerHTML='';
+  if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
+
+  if(state.adminSelected){
+    const p = r.pilotos.find(x=>x.usuario===state.adminSelected);
+    if(!p){ state.adminSelected=null; render(); return; }
+    const back = el('span',{class:'back-link'},'← Volver a la lista de pilotos');
+    back.addEventListener('click', ()=>{state.adminSelected=null; state.paginaTabla=null; render();});
+    content.appendChild(back);
+    content.appendChild(el('h2',{style:'margin:0 0 4px;font-size:18px;'}, p.nombre+' '+p.apellido));
+    content.appendChild(el('p',{style:'color:var(--muted);font-size:12px;margin:0 0 16px;'}, 'Licencia '+(p.licencia||'-')+' · Legajo '+(p.legajo||'-')));
+
+    const btnRowPerfil = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;'});
+
+    const informeBtn = el('button',{class:'btn-secondary'}, '🖨 Generar / Imprimir informe');
+    informeBtn.addEventListener('click', ()=> generarInformePiloto(p));
+    btnRowPerfil.appendChild(informeBtn);
+
+    const bajaBtn = el('button',{class:'btn-secondary', style:'color:var(--danger);border-color:var(--danger);'}, 'Dar de baja a este piloto');
+    bajaBtn.addEventListener('click', async ()=>{
+      if(!confirm('¿Dar de baja a '+p.nombre+' '+p.apellido+'? Se van a borrar TODOS sus vuelos registrados. Esta acción no se puede deshacer.')) return;
+      const res = await apiPost({action:'eliminarPiloto', Usuario: p.usuario});
+      if(res.ok){ showToast('Piloto dado de baja ✓'); state.adminSelected=null; render(); }
+      else { showToast(res.error || 'Error al dar de baja'); }
+    });
+    btnRowPerfil.appendChild(bajaBtn);
+    content.appendChild(btnRowPerfil);
+
+    content.appendChild(renderGauges(p.totales));
+    state.cachePilotoVuelos = p.vuelos;
+    const estPilotoContainer = el('div',{id:'estadisticas-piloto-container'});
+    estPilotoContainer.appendChild(renderEstadisticasPiloto(p.vuelos));
+    content.appendChild(estPilotoContainer);
+    content.appendChild(renderTable(p.vuelos));
+    content.appendChild(renderMigratorioResumen(p.migratorio));
+    return;
+  }
+
+  const altaBtn = el('button',{class:'btn-primary', style:'max-width:220px;margin-bottom:16px;'}, state.mostrarFormPiloto ? 'Cancelar' : '+ Agregar piloto');
+  altaBtn.addEventListener('click', ()=>{ state.mostrarFormPiloto = !state.mostrarFormPiloto; render(); });
+  content.appendChild(altaBtn);
+
+  if(state.mostrarFormPiloto){
+    content.appendChild(renderFormAltaPiloto(()=>{ state.mostrarFormPiloto=false; render(); }));
+  }
+
+  const buscador = el('input',{type:'text', placeholder:'Buscar piloto por nombre...'});
+  buscador.value = state.busquedaPiloto || '';
+  buscador.style.cssText = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;margin-bottom:16px;';
+  buscador.addEventListener('input', ()=>{ state.busquedaPiloto = buscador.value; renderizarListaPilotos(); });
+  content.appendChild(buscador);
+
+  content.appendChild(el('div',{class:'sub', style:'margin-bottom:12px;color:var(--muted);font-size:12px;'},'Tocá un piloto para ver su bitácora completa.'));
+  const list = el('div',{class:'pilot-list'});
+  content.appendChild(list);
+
+  function renderizarListaPilotos(){
+    list.innerHTML = '';
+    const filtro = (state.busquedaPiloto||'').trim().toLowerCase();
+    r.pilotos
+      .filter(p => !filtro || (p.nombre+' '+p.apellido).toLowerCase().includes(filtro))
+      .sort((a,b)=> b.totales.TotalHoras - a.totales.TotalHoras)
+      .forEach(p=>{
+        const item = el('div',{class:'pilot-item'},[
+          el('div',{},[
+            el('div',{class:'name'}, p.nombre+' '+p.apellido),
+            el('div',{class:'meta'}, 'Lic. '+(p.licencia||'-')+' · '+p.vuelos.length+' vuelos registrados')
+          ]),
+          el('div',{class:'hours mono'}, fmt(p.totales.TotalHoras)+' h')
+        ]);
+        item.addEventListener('click', ()=>{state.adminSelected=p.usuario; state.paginaTabla=null; render();});
+        list.appendChild(item);
+      });
+    if(!list.children.length){
+      list.appendChild(el('div',{class:'empty'},'No se encontraron pilotos.'));
+    }
+  }
+  renderizarListaPilotos();
+}
+
+function renderFormAltaPiloto(onCreated){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Nuevo piloto'));
+  card.appendChild(el('div',{class:'sub'},'Se crea con Rol = piloto. El usuario y la clave se los pasás vos al alumno.'));
+
+  const grid = el('div',{class:'grid'});
+  const fields = {};
+  function f(key,label,type='text'){
+    const inp = el('input',{type:type});
+    fields[key]=inp;
+    grid.appendChild(campoConEtiqueta(label, inp));
+  }
+  f('Usuario','Usuario');
+  f('Clave','Clave');
+  f('Nombre','Nombre');
+  f('Apellido','Apellido');
+  f('Licencia','Licencia');
+  f('Numero','N°');
+  f('Legajo','Legajo');
+  card.appendChild(grid);
+
+  const errorBox = el('div',{class:'error-msg', style:'display:none;'});
+  const btn = el('button',{class:'btn-primary', style:'max-width:220px;margin-top:14px;'},'Crear piloto');
+  btn.addEventListener('click', async ()=>{
+    if(!fields.Usuario.value.trim() || !fields.Clave.value.trim()){
+      errorBox.textContent = 'Usuario y clave son obligatorios.';
+      errorBox.style.display='block';
+      return;
+    }
+    errorBox.style.display='none';
+    btn.disabled=true; btn.textContent='Creando...';
+    const data = {action:'crearPiloto'};
+    Object.entries(fields).forEach(([k,inp])=>{ data[k]=inp.value.trim(); });
+    try{
+      const r = await apiPost(data);
+      if(r.ok){ showToast('Piloto creado ✓'); onCreated && onCreated(); }
+      else { errorBox.textContent = r.error || 'Error al crear el piloto'; errorBox.style.display='block'; }
+    }catch(e){ errorBox.textContent='No se pudo conectar.'; errorBox.style.display='block'; }
+    btn.disabled=false; btn.textContent='Crear piloto';
+  });
+  card.appendChild(errorBox);
+  card.appendChild(btn);
+  return card;
+}
+
+render();
+</script>
+</body>
+</html>
