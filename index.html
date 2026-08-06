@@ -171,9 +171,14 @@
   #print-report table{ width:100%; border-collapse:collapse; font-size:11px; margin-bottom:8px; }
   #print-report th, #print-report td{ border:1px solid #999; padding:5px 7px; text-align:left; }
   #print-report th{ background:#eee; font-weight:700; }
+  #print-report .doc-pagina{ text-align:center; }
+  #print-report .doc-pagina img{ max-width:100%; max-height:96vh; object-fit:contain; }
   @media print{
     body > *:not(#print-report){ display:none !important; }
     #print-report{ display:block !important; position:static !important; background:#fff; color:#111; }
+    #print-report.solo-imagenes .doc-pagina{ page-break-after:always; break-after:page; }
+    #print-report.solo-imagenes .doc-pagina:last-child{ page-break-after:auto; break-after:auto; }
+    #print-report.solo-imagenes .doc-pagina img{ max-height:98vh; }
   }
 </style>
 </head>
@@ -1143,6 +1148,156 @@ function renderMigratorio(estado){
   card.appendChild(errorBox);
   card.appendChild(btn);
   return card;
+}
+
+/* ---------------- DOCUMENTOS (Pasaporte / Licencia / CMA) ---------------- */
+const TIPOS_DOC = [['PASAPORTE','Pasaporte'],['LICENCIA','Licencia'],['CMA','CMA']];
+
+// Achica y comprime la imagen en el propio celular antes de subirla, para que
+// no pese varios MB. Los PDF se suben tal cual (no se pueden comprimir así).
+function comprimirImagen(file, maxLado=1600, calidad=0.75){
+  return new Promise((resolve, reject)=>{
+    if(file.type === 'application/pdf'){
+      const fr = new FileReader();
+      fr.onload = ()=> resolve({ base64: fr.result.split(',')[1], mimeType: file.type });
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+      return;
+    }
+    const fr = new FileReader();
+    fr.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let {width:w, height:h} = img;
+        if(w > maxLado || h > maxLado){
+          if(w >= h){ h = Math.round(h * maxLado / w); w = maxLado; }
+          else { w = Math.round(w * maxLado / h); h = maxLado; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', calidad);
+        resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+      };
+      img.onerror = reject;
+      img.src = fr.result;
+    };
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
+
+function renderDocumentosPiloto(documentos){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Documentos'));
+  card.appendChild(el('div',{class:'sub'},'Subí una foto (o PDF) de cada documento. Podés reemplazarlos cuando los renueves.'));
+
+  TIPOS_DOC.forEach(([tipo, etiqueta])=>{
+    const doc = documentos[tipo];
+    const bloque = el('div',{style:'margin-top:16px;padding-top:16px;border-top:1px solid var(--line);'});
+    const fila = el('div',{style:'display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;'});
+    fila.appendChild(el('div',{},[
+      el('div',{style:'font-weight:600;font-size:14px;'}, etiqueta),
+      el('div',{style:'font-size:11px;color:'+(doc?'var(--teal)':'var(--muted)')+';margin-top:2px;'},
+        doc ? ('Cargado ✓ · '+formatFecha(doc.Fecha)) : 'Sin subir')
+    ]));
+
+    const input = el('input',{type:'file', accept:'image/*,application/pdf', style:'display:none;'});
+    const btn = el('button',{class:'btn-secondary'}, doc ? 'Reemplazar' : 'Subir archivo');
+    const estado = el('div',{style:'font-size:11px;color:var(--muted);'});
+
+    btn.addEventListener('click', ()=> input.click());
+    input.addEventListener('change', async ()=>{
+      const file = input.files && input.files[0];
+      if(!file) return;
+      btn.disabled = true; btn.textContent = 'Subiendo...';
+      estado.textContent = 'Preparando el archivo...';
+      try{
+        const { base64, mimeType } = await comprimirImagen(file);
+        estado.textContent = 'Subiendo...';
+        const r = await apiPost({action:'subirDocumento', Tipo:tipo, Base64:base64, MimeType:mimeType, Nombre:file.name});
+        if(r.ok){ showToast(etiqueta+' subido ✓'); render(); }
+        else { estado.textContent = r.error || 'Error al subir'; btn.disabled=false; btn.textContent = doc?'Reemplazar':'Subir archivo'; }
+      }catch(e){
+        estado.textContent = 'No se pudo procesar el archivo.';
+        btn.disabled=false; btn.textContent = doc?'Reemplazar':'Subir archivo';
+      }
+    });
+
+    const acciones = el('div',{style:'display:flex;align-items:center;gap:10px;'},[btn]);
+    if(doc){
+      const ver = el('a',{href:'https://drive.google.com/file/d/'+doc.FileId+'/view', target:'_blank', class:'back-link', style:'font-size:12px;'},'Ver');
+      acciones.appendChild(ver);
+    }
+    fila.appendChild(acciones);
+    bloque.appendChild(fila);
+    bloque.appendChild(input);
+    bloque.appendChild(estado);
+    card.appendChild(bloque);
+  });
+
+  return card;
+}
+
+// Vista del instructor: miniaturas de los 3 documentos + botón de PDF combinado
+function renderDocumentosAdmin(p){
+  const documentos = p.documentos || {};
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Documentos'));
+
+  const grid = el('div',{class:'gauges'});
+  TIPOS_DOC.forEach(([tipo, etiqueta])=>{
+    const doc = documentos[tipo];
+    const celda = el('div',{class:'gauge'});
+    celda.appendChild(el('div',{style:'font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;'}, etiqueta));
+    if(doc){
+      if(String(doc.MimeType).indexOf('pdf') !== -1){
+        celda.appendChild(el('div',{style:'font-size:13px;color:var(--teal);'},'PDF cargado'));
+      } else {
+        const img = el('img',{src:'https://drive.google.com/thumbnail?id='+doc.FileId+'&sz=w400', style:'width:100%;border-radius:6px;display:block;'});
+        celda.appendChild(img);
+      }
+      const ver = el('a',{href:'https://drive.google.com/file/d/'+doc.FileId+'/view', target:'_blank', class:'back-link', style:'font-size:12px;display:inline-block;margin-top:8px;'},'Ver en grande');
+      celda.appendChild(ver);
+    } else {
+      celda.appendChild(el('div',{style:'font-size:13px;color:var(--muted);'},'Sin subir'));
+    }
+    grid.appendChild(celda);
+  });
+  card.appendChild(grid);
+
+  const hayImagenes = TIPOS_DOC.some(([t])=> documentos[t] && String(documentos[t].MimeType).indexOf('pdf') === -1);
+  if(hayImagenes){
+    const btnPdf = el('button',{class:'btn-secondary', style:'margin-top:14px;'}, '🖨 Generar PDF de documentos');
+    btnPdf.addEventListener('click', ()=> generarPdfDocumentos(p));
+    card.appendChild(btnPdf);
+    card.appendChild(el('div',{style:'font-size:10px;color:var(--muted);margin-top:6px;'},'Los documentos subidos como PDF no se incluyen en este combinado; se ven aparte con "Ver en grande".'));
+  }
+
+  return card;
+}
+
+// PDF combinado: solo las imágenes, una por página, sin encabezados ni títulos
+function generarPdfDocumentos(p){
+  const documentos = p.documentos || {};
+  const cont = document.getElementById('print-report');
+  cont.innerHTML = '';
+  cont.classList.add('solo-imagenes');
+
+  TIPOS_DOC.forEach(([tipo])=>{
+    const doc = documentos[tipo];
+    if(!doc) return;
+    if(String(doc.MimeType).indexOf('pdf') !== -1) return; // los PDF no se combinan
+    const pagina = el('div',{class:'doc-pagina'});
+    pagina.appendChild(el('img',{src:'https://drive.google.com/thumbnail?id='+doc.FileId+'&sz=w1600'}));
+    cont.appendChild(pagina);
+  });
+
+  // Damos un momento a que carguen las imágenes antes de abrir la impresión
+  setTimeout(()=>{
+    window.print();
+    cont.classList.remove('solo-imagenes');
+  }, 1200);
 }
 
 function renderHorasIniciales(horas){
@@ -2221,7 +2376,7 @@ async function renderPiloto(){
   app.appendChild(renderTopbar('Licencia '+(state.session.licencia||'-')+' · Legajo '+(state.session.legajo||'-')));
 
   const tabs = el('div',{class:'tabs'});
-  const tabDefs = [['nuevo','Nuevo vuelo'],['bitacora','Mi bitácora'],['reporte','Reporte'],['migratorio','Estado Migratorio'],['procedimientos','Procedimientos Pilotos DFY']];
+  const tabDefs = [['nuevo','Nuevo vuelo'],['bitacora','Mi bitácora'],['reporte','Reporte'],['migratorio','Estado Migratorio'],['documentos','Documentos'],['procedimientos','Procedimientos Pilotos DFY']];
   tabDefs.forEach(([key,label])=>{
     const t = el('button',{class:'tab'+(state.tab===key?' active':'')},label);
     t.addEventListener('click', ()=>{state.tab=key; state.editingVuelo=null; state.paginaTabla=null; render();});
@@ -2244,6 +2399,13 @@ async function renderPiloto(){
     content.innerHTML='';
     if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
     content.appendChild(renderMigratorio(r.estado));
+    return;
+  }
+  if(state.tab==='documentos'){
+    const r = await apiGet({action:'documentos'});
+    content.innerHTML='';
+    if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
+    content.appendChild(renderDocumentosPiloto(r.documentos||{}));
     return;
   }
   if(state.tab==='procedimientos'){
@@ -2488,6 +2650,7 @@ async function renderAdmin(){
     content.appendChild(estPilotoContainer);
     content.appendChild(renderTable(p.vuelos));
     content.appendChild(renderMigratorioResumen(p.migratorio));
+    content.appendChild(renderDocumentosAdmin(p));
     return;
   }
 
