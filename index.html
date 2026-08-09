@@ -356,7 +356,7 @@ async function apiPost(body){
     });
     json = await res.json();
   } catch(e){
-    json = { ok:false, error: 'No se pudo conectar. Fijate si el cambio ya se guardó antes de volver a intentar.' };
+    json = { ok:false, error: 'No se pudo conectar. Revisa si el cambio ya se guardó antes de volver a intentar.' };
   }
   manejarSesionExpirada(json);
   return json;
@@ -396,7 +396,7 @@ function render(reintentando){
       // de molestar al usuario (Apps Script a veces falla de forma momentánea).
       setTimeout(()=> render(true), 900);
     } else {
-      showToast('No se pudo conectar. Probá de nuevo en unos segundos.');
+      showToast('No se pudo conectar. Intenta de nuevo en unos segundos.');
     }
   };
   if(state.session.rol === 'admin'){
@@ -438,7 +438,7 @@ function renderLogin(){
   card.appendChild(campoConEtiqueta('Clave', passField));
   card.appendChild(errorBox);
   card.appendChild(btn);
-  card.appendChild(el('div',{class:'config-note'},'¿No tenés usuario o clave? Pideselo a tu instructor.'));
+  card.appendChild(el('div',{class:'config-note'},'¿No tienes usuario o clave? Pídeselo a tu instructor.'));
 
   async function doLogin(){
     if(!userField.value || !passField.value) return;
@@ -512,7 +512,7 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
   const isEdit = !!existing;
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},isEdit ? 'Editar registro de vuelo' : 'Nuevo registro de vuelo'));
-  card.appendChild(el('div',{class:'sub'},'Completá según corresponda. Dejá en blanco lo que no aplique.'));
+  card.appendChild(el('div',{class:'sub'},'Completa según corresponda. Deja en blanco lo que no aplique.'));
 
   const grid = el('div',{class:'grid'});
   const fields = {};
@@ -560,7 +560,7 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
     fields[key]=sel;
 
     const mapaAcentos = {'Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U','Ü':'U'};
-    const otroInp = el('input',{type:'text', placeholder:'Escribí el nombre...', style:'display:none;margin-top:8px;text-transform:uppercase;'});
+    const otroInp = el('input',{type:'text', placeholder:'Escribe el nombre...', style:'display:none;margin-top:8px;text-transform:uppercase;'});
     otroInp.addEventListener('input', ()=>{
       let v = otroInp.value.toUpperCase();
       v = v.replace(/[ÁÉÍÓÚÜ]/g, ch => mapaAcentos[ch] || ch);
@@ -597,7 +597,7 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
     sel.appendChild(el('option',{value:''},'Seleccionar...'));
     fields[key]=sel;
 
-    const otroInp = el('input',{type:'text', placeholder:'Escribí la matrícula...', style:'display:none;margin-top:8px;text-transform:uppercase;'});
+    const otroInp = el('input',{type:'text', placeholder:'Escribe la matrícula...', style:'display:none;margin-top:8px;text-transform:uppercase;'});
     otroInp.addEventListener('input', ()=>{
       otroInp.value = otroInp.value.toUpperCase().replace(/[^A-Z0-9\-]/g,'');
     });
@@ -814,6 +814,16 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
     if(tipo !== 'SIMULADOR'){
       requeridos.push('Desde','Hasta','Potencia','Clase');
     }
+
+    // Aterrizajes: mínimo 1 en vuelos reales (en Simulador la casilla está deshabilitada)
+    if(tipo === 'LOCAL' || tipo === 'TRAVESIA'){
+      const aterrizajes = Number(fields.Aterrizajes.value) || 0;
+      if(aterrizajes < 1){
+        errorBox.textContent = 'Tienes que registrar al menos 1 aterrizaje.';
+        errorBox.style.display='block';
+        return;
+      }
+    }
     for(const k of requeridos){
       const inp = fields[k];
       if(!inp) continue;
@@ -828,7 +838,7 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
     if(data.Matricula === 'OTRO'){
       const otroVal = (fields.Matricula_Otro.value||'').trim();
       if(!otroVal){
-        errorBox.textContent = 'Escribí la matrícula en el campo "Otro".';
+        errorBox.textContent = 'Escribe la matrícula en el campo "Otro".';
         errorBox.style.display='block';
         return;
       }
@@ -837,7 +847,7 @@ function renderForm(onSaved, existing=null, currentTotal=0, onCancel=null, catal
     if(data.Certificaciones === 'OTRO'){
       const otroVal = (fields.Certificaciones_Otro.value||'').trim();
       if(!otroVal){
-        errorBox.textContent = 'Escribí el nombre en el campo "Otro" de Instructor/Safety.';
+        errorBox.textContent = 'Escribe el nombre en el campo "Otro" de Instructor/Safety.';
         errorBox.style.display='block';
         return;
       }
@@ -1077,7 +1087,7 @@ function renderReporte(){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Reporte anónimo'));
   card.appendChild(el('div',{class:'sub'},'Este mensaje llega únicamente al instructor y no queda asociado a tu usuario.'));
-  const textarea = el('textarea',{rows:'6', placeholder:'Escribí tu mensaje...', id:'reporte-mensaje', name:'mensaje', 'aria-label':'Mensaje del reporte'});
+  const textarea = el('textarea',{rows:'6', placeholder:'Escribe tu mensaje...', id:'reporte-mensaje', name:'mensaje', 'aria-label':'Mensaje del reporte'});
   textarea.style.cssText='width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;font-family:inherit;resize:vertical;';
   card.appendChild(el('div',{class:'field'},[textarea]));
 
@@ -1190,7 +1200,7 @@ function comprimirImagen(file, maxLado=1600, calidad=0.75){
 function renderDocumentosPiloto(documentos){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Documentos'));
-  card.appendChild(el('div',{class:'sub'},'Subí una foto (o PDF) de cada documento. Podés reemplazarlos cuando los renueves.'));
+  card.appendChild(el('div',{class:'sub'},'Sube una foto (o PDF) de cada documento. Puedes reemplazarlos cuando los renueves.'));
 
   TIPOS_DOC.forEach(([tipo, etiqueta])=>{
     const doc = documentos[tipo];
@@ -2304,7 +2314,7 @@ function renderHorasDreamFly(todos){
   const addBtn = el('button',{class:'btn-secondary', style:'margin-top:14px;'}, '+ Agregar año');
   addBtn.addEventListener('click', ()=>{
     const siguiente = anios.length ? (Math.max(...anios.map(Number))+1) : new Date().getFullYear();
-    const input = prompt('¿Qué año querés agregar?', String(siguiente));
+    const input = prompt('¿Qué año quieres agregar?', String(siguiente));
     if(!input) return;
     const anioNum = parseInt(input,10);
     if(isNaN(anioNum)) return;
@@ -2376,7 +2386,7 @@ async function renderPiloto(){
   app.appendChild(renderTopbar('Licencia '+(state.session.licencia||'-')+' · Legajo '+(state.session.legajo||'-')));
 
   const tabs = el('div',{class:'tabs'});
-  const tabDefs = [['nuevo','Nuevo vuelo'],['bitacora','Mi bitácora'],['reporte','Reporte'],['migratorio','Estado Migratorio'],['documentos','Documentos'],['procedimientos','Procedimientos Pilotos DFY']];
+  const tabDefs = [['nuevo','Nuevo vuelo'],['bitacora','Mi bitácora'],['reporte','Reporte'],['miinformacion','Mi información'],['procedimientos','Procedimientos Pilotos DFY']];
   tabDefs.forEach(([key,label])=>{
     const t = el('button',{class:'tab'+(state.tab===key?' active':'')},label);
     t.addEventListener('click', ()=>{state.tab=key; state.editingVuelo=null; state.paginaTabla=null; render();});
@@ -2394,18 +2404,15 @@ async function renderPiloto(){
     content.appendChild(renderReporte());
     return;
   }
-  if(state.tab==='migratorio'){
-    const r = await apiGet({action:'estadoMigratorio', usuario: state.session.usuario});
+  if(state.tab==='miinformacion'){
+    const [rMig, rDoc] = await Promise.all([
+      apiGet({action:'estadoMigratorio', usuario: state.session.usuario}),
+      apiGet({action:'documentos'})
+    ]);
     content.innerHTML='';
-    if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
-    content.appendChild(renderMigratorio(r.estado));
-    return;
-  }
-  if(state.tab==='documentos'){
-    const r = await apiGet({action:'documentos'});
-    content.innerHTML='';
-    if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
-    content.appendChild(renderDocumentosPiloto(r.documentos||{}));
+    if(!rMig.ok){ content.appendChild(el('div',{class:'empty'},rMig.error||'Error cargando datos')); return; }
+    content.appendChild(renderMigratorio(rMig.estado));
+    content.appendChild(renderDocumentosPiloto(rDoc.ok ? (rDoc.documentos||{}) : {}));
     return;
   }
   if(state.tab==='procedimientos'){
@@ -2668,7 +2675,7 @@ async function renderAdmin(){
   buscador.addEventListener('input', ()=>{ state.busquedaPiloto = buscador.value; renderizarListaPilotos(); });
   content.appendChild(buscador);
 
-  content.appendChild(el('div',{class:'sub', style:'margin-bottom:12px;color:var(--muted);font-size:12px;'},'Tocá un piloto para ver su bitácora completa.'));
+  content.appendChild(el('div',{class:'sub', style:'margin-bottom:12px;color:var(--muted);font-size:12px;'},'Toca un piloto para ver su bitácora completa.'));
   const list = el('div',{class:'pilot-list'});
   content.appendChild(list);
 
@@ -2699,7 +2706,7 @@ async function renderAdmin(){
 function renderFormAltaPiloto(onCreated){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Nuevo piloto'));
-  card.appendChild(el('div',{class:'sub'},'Se crea con Rol = piloto. El usuario y la clave se los pasás vos al alumno.'));
+  card.appendChild(el('div',{class:'sub'},'Se crea con Rol = piloto. El usuario y la clave se los pasas tú al alumno.'));
 
   const grid = el('div',{class:'grid'});
   const fields = {};
