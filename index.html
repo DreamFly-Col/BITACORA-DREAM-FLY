@@ -123,7 +123,9 @@
   .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:20px;}
   .card h3{margin:0 0 4px;font-size:14px;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;}
   .card .sub{color:var(--muted);font-size:11px;margin-bottom:14px;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;align-items:end;}
+  .grid > .field{display:flex;flex-direction:column;justify-content:flex-end;height:100%;}
+  .grid > .field > label{flex:1;display:flex;align-items:flex-end;}
   .grid .field{margin-top:0;}
   .grid input{width:100%;}
   .section-title{grid-column:1/-1;font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 2px;border-top:1px solid var(--line);padding-top:12px;}
@@ -218,7 +220,6 @@ const state = {
   paginaTabla: null,
   cacheTablaVuelos: null,
   procCategoria: null,
-  loading: false,
 };
 
 function el(tag, attrs={}, children=[]){
@@ -1109,13 +1110,29 @@ function renderReporte(){
 }
 
 /* ---------------- ESTADO MIGRATORIO (piloto) ---------------- */
+const ETAPAS_RADEX = [
+  'SIN INICIAR',
+  'REUNIENDO DOCUMENTOS',
+  'RADEX INICIADO (1° PASO)',
+  'TASAS PAGADAS',
+  'DOCUMENTACIÓN CARGADA',
+  'ESPERANDO VALIDACIÓN',
+  'CITA ASIGNADA',
+  'CITA REALIZADA',
+  'RESIDENCIA OTORGADA'
+];
+
 function renderMigratorio(estado){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Estado migratorio'));
-  card.appendChild(el('div',{class:'sub'},'Actualizá esta información cuando cambie. Se guarda tu último estado.'));
+  card.appendChild(el('div',{class:'sub'},'Actualiza esta información cuando cambie. Se guarda tu último estado.'));
 
-  const grid = el('div',{class:'grid'});
+  // grid-auto-rows + align-items:end mantiene todos los campos alineados aunque
+  // las etiquetas ocupen una o dos líneas
+  const grid = el('div',{class:'grid', style:'align-items:end;'});
   const fields = {};
+  const estiloControl = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
+
   function dateF(key,label){
     const inp = el('input',{type:'date'});
     fields[key]=inp;
@@ -1123,17 +1140,32 @@ function renderMigratorio(estado){
   }
   function checkF(key,label){
     const sel = el('select',{});
-    sel.style.cssText='width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
+    sel.style.cssText = estiloControl;
     [['','Seleccionar...'],['SI','Sí'],['NO','No']].forEach(([v,l])=> sel.appendChild(el('option',{value:v}, l)));
     fields[key]=sel;
     grid.appendChild(campoConEtiqueta(label, sel));
   }
+  function selectF(key,label,opciones){
+    const sel = el('select',{});
+    sel.style.cssText = estiloControl;
+    sel.appendChild(el('option',{value:''},'Seleccionar...'));
+    opciones.forEach(o=> sel.appendChild(el('option',{value:o}, o)));
+    fields[key]=sel;
+    grid.appendChild(campoConEtiqueta(label, sel));
+  }
+
   dateF('FechaLlegada','Fecha de llegada a Argentina');
-  checkF('Radex','¿Inició trámite RADEX?');
+  selectF('Radex','Estado trámite RADEX', ETAPAS_RADEX);
   dateF('FechaCitaMigracion','Fecha de cita a migración');
   checkF('Precaria','¿Tiene precaria/DNI?');
   dateF('FechaVencePrecaria','Vencimiento tiempo legal/Precaria');
   card.appendChild(grid);
+
+  // Observaciones ocupa todo el ancho, debajo de la grilla
+  const obsInp = el('textarea',{rows:'3', placeholder:'Cualquier detalle o particularidad del trámite...'});
+  obsInp.style.cssText = estiloControl + 'font-family:inherit;resize:vertical;';
+  fields['Observaciones'] = obsInp;
+  card.appendChild(el('div',{style:'margin-top:14px;'},[campoConEtiqueta('Observaciones', obsInp)]));
 
   if(estado){
     Object.entries(fields).forEach(([k,inp])=>{
@@ -1399,7 +1431,7 @@ function renderMigratorioResumen(m){
   }
   const rows = [
     ['Llegada a Argentina', formatFecha(m.FechaLlegada)],
-    ['RADEX iniciado', m.Radex||'-'],
+    ['Estado trámite RADEX', m.Radex||'-'],
     ['Cita a migración', formatFecha(m.FechaCitaMigracion)],
     ['Tiene precaria/DNI', m.Precaria||'-'],
     ['Vence tiempo legal/Precaria', formatFecha(m.FechaVencePrecaria)],
@@ -1412,6 +1444,12 @@ function renderMigratorioResumen(m){
     ]));
   });
   card.appendChild(grid);
+  if(m.Observaciones){
+    card.appendChild(el('div',{style:'margin-top:14px;'},[
+      el('div',{style:'font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;'},'Observaciones'),
+      el('div',{style:'font-size:13px;line-height:1.5;white-space:pre-wrap;'}, String(m.Observaciones))
+    ]));
+  }
   return card;
 }
 
@@ -1457,115 +1495,6 @@ function calcularEstadisticasMensuales(vuelos, campo='TotalHoras'){
   return map;
 }
 
-// Desglose Año (contraído por defecto) → Mes (12) → Semana, reutilizable.
-// Modo simple: pasar statsSingle (de calcularEstadisticasMensuales) y statsDual=null.
-// Modo dual (vuelo + simulador, ej. instructor/safety): pasar statsSingle=null y
-// statsDual={vuelo:{...}, simulador:{...}}.
-// Mini-tabla con el desglose semanal del MES ACTUAL (hoy), en el mismo
-// formato que el desglose completo. Se recalcula sola cada vez que se
-// renderiza, así que cambia de mes automáticamente cuando corresponda.
-function renderTablaMesActual(statsSingle, statsDual){
-  const dual = !!statsDual;
-  const ahora = new Date();
-  const mesKey = ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0');
-  const rangos = rangosSemana(mesKey);
-  const table = el('table',{class:'strip-table'});
-
-  if(!dual){
-    const s = statsSingle[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
-    const headRow = rangos.map(r=> el('th',{}, rangoLabel(r)));
-    headRow.push(el('th',{},'Total mes'));
-    table.appendChild(el('thead',{},[el('tr',{},headRow)]));
-    const dataRow = rangos.map((r,i)=> el('td',{}, fmt(s.semanas[i+1])));
-    dataRow.push(el('td',{}, fmt(s.total)));
-    table.appendChild(el('tbody',{},[el('tr',{},dataRow)]));
-  } else {
-    const sV = statsDual.vuelo[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
-    const sS = statsDual.simulador[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
-    const headRow = [el('th',{},'')];
-    rangos.forEach(r=> headRow.push(el('th',{}, rangoLabel(r))));
-    headRow.push(el('th',{},'Total mes'));
-    table.appendChild(el('thead',{},[el('tr',{},headRow)]));
-    const rowV = [el('td',{},'Vuelo')];
-    rangos.forEach((r,i)=> rowV.push(el('td',{}, fmt(sV.semanas[i+1]))));
-    rowV.push(el('td',{}, fmt(sV.total)));
-    const rowS = [el('td',{},'Simulador')];
-    rangos.forEach((r,i)=> rowS.push(el('td',{}, fmt(sS.semanas[i+1]))));
-    rowS.push(el('td',{}, fmt(sS.total)));
-    table.appendChild(el('tbody',{},[el('tr',{},rowV), el('tr',{},rowS)]));
-  }
-
-  const wrap = el('div',{});
-  wrap.appendChild(el('div',{style:'font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;'}, mesLabel(mesKey)+' (mes actual)'));
-  wrap.appendChild(el('div',{class:'table-scroll'},[table]));
-  return wrap;
-}
-
-function renderAniosExpandibles(statsSingle, statsDual, keyBase){
-  const dual = !!statsDual;
-  const wrap = el('div',{});
-
-  let anios;
-  if(dual){
-    const claves = new Set([...Object.keys(statsDual.vuelo), ...Object.keys(statsDual.simulador)]);
-    anios = Array.from(new Set(Array.from(claves).map(k=>k.split('-')[0]))).sort();
-  } else {
-    anios = Array.from(new Set(Object.keys(statsSingle).map(k=>k.split('-')[0]))).sort();
-  }
-  if(anios.length === 0){
-    wrap.appendChild(el('div',{class:'empty'},'Todavía no hay datos suficientes.'));
-    return wrap;
-  }
-
-  if(!state.statsCatalogoExpandido) state.statsCatalogoExpandido = {};
-
-  anios.forEach(anio=>{
-    const key = keyBase+'|'+anio;
-    const expandido = !!state.statsCatalogoExpandido[key];
-    const header = el('div',{style:'display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;border-top:1px solid var(--line);'});
-    header.appendChild(el('div',{style:'font-weight:600;font-size:13px;'}, anio));
-    header.appendChild(el('span',{style:'color:var(--amber);font-size:12px;display:inline-block;transition:transform .15s;'+(expandido?'transform:rotate(90deg);':'')}, '▶'));
-    header.addEventListener('click', ()=>{ state.statsCatalogoExpandido[key] = !expandido; refrescarEstadisticas(); });
-    wrap.appendChild(header);
-
-    if(expandido){
-      for(let m=1; m<=12; m++){
-        const mesKey = anio+'-'+String(m).padStart(2,'0');
-        const rangos = rangosSemana(mesKey);
-        const bloque = el('div',{style:'margin-top:14px;'});
-        bloque.appendChild(el('div',{style:'font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;'}, mesLabel(mesKey)));
-        const table = el('table',{class:'strip-table'});
-
-        if(!dual){
-          const s = statsSingle[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
-          const headRow = rangos.map(r=> el('th',{}, rangoLabel(r)));
-          headRow.push(el('th',{},'Total mes'));
-          table.appendChild(el('thead',{},[el('tr',{},headRow)]));
-          const dataRow = rangos.map((r,i)=> el('td',{}, fmt(s.semanas[i+1])));
-          dataRow.push(el('td',{}, fmt(s.total)));
-          table.appendChild(el('tbody',{},[el('tr',{},dataRow)]));
-        } else {
-          const sV = statsDual.vuelo[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
-          const sS = statsDual.simulador[mesKey] || {total:0, semanas:{1:0,2:0,3:0,4:0,5:0}};
-          const headRow = [el('th',{},'')];
-          rangos.forEach(r=> headRow.push(el('th',{}, rangoLabel(r))));
-          headRow.push(el('th',{},'Total mes'));
-          table.appendChild(el('thead',{},[el('tr',{},headRow)]));
-          const rowV = [el('td',{},'Vuelo')];
-          rangos.forEach((r,i)=> rowV.push(el('td',{}, fmt(sV.semanas[i+1]))));
-          rowV.push(el('td',{}, fmt(sV.total)));
-          const rowS = [el('td',{},'Simulador')];
-          rangos.forEach((r,i)=> rowS.push(el('td',{}, fmt(sS.semanas[i+1]))));
-          rowS.push(el('td',{}, fmt(sS.total)));
-          table.appendChild(el('tbody',{},[el('tr',{},rowV), el('tr',{},rowS)]));
-        }
-        bloque.appendChild(el('div',{class:'table-scroll'},[table]));
-        wrap.appendChild(bloque);
-      }
-    }
-  });
-  return wrap;
-}
 
 function renderEstadisticasPiloto(vuelos){
   const card = el('div',{class:'card'});
@@ -2049,24 +1978,52 @@ function renderInformeMensual(pilotos, todos){
 // y totales generales) y dispara la impresión del navegador.
 // Informe individual de un piloto: resumen histórico, progreso mes a mes,
 // cercanía a 250h y el detalle completo de todos sus vuelos.
-// Desglose completo por mes (todos los campos, no solo el total) para el
-// informe individual de piloto.
+// ---- CAPA ÚNICA DE CÁLCULO DE MÉTRICAS ----
+// Todo lo que sume métricas de vuelos (informes, estadísticas) pasa por acá,
+// para que la fórmula exista en un solo lugar y no se desincronicen entre sí.
+
+function resumenVacio(){
+  return {adDia:0,adNoche:0,trDia:0,trNoche:0,total:0,aterrizajes:0,multimotor:0,instrumentos:0,capota:0,simulador:0};
+}
+
+// Suma un vuelo dentro de un acumulador (creado con resumenVacio()).
+function acumularVuelo(r, v){
+  r.adDia += Number(v.AD_Dia_Piloto)||0; r.adNoche += Number(v.AD_Noche_Piloto)||0;
+  r.trDia += Number(v.TR_Dia_Piloto)||0; r.trNoche += Number(v.TR_Noche_Piloto)||0;
+  r.total += Number(v.TotalHoras)||0;
+  r.aterrizajes += Number(v.Aterrizajes)||0; r.multimotor += Number(v.Multimotor)||0;
+  r.instrumentos += Number(v.Instr_Real_Piloto)||0; r.capota += Number(v.Capota)||0;
+  r.simulador += Number(v.Adiestrador_PilotoInstruccion)||0;
+  return r;
+}
+
+// Suma una lista completa de vuelos y devuelve un único resumen.
+function calcularResumen(vuelos){
+  const r = resumenVacio();
+  (vuelos||[]).forEach(v=> acumularVuelo(r, v));
+  return r;
+}
+
+// Devuelve solo los vuelos de un mes dado ('YYYY-MM').
+function filtrarVuelosDelMes(vuelos, mesKey){
+  return (vuelos||[]).filter(v=>{
+    const f = String(v.Fecha||'');
+    const dp = f.includes('T') ? f.split('T')[0] : f;
+    return dp.indexOf(mesKey) === 0;
+  });
+}
+
+// Desglose completo por mes (todos los campos, no solo el total).
 function calcularResumenMensualCompleto(vuelos){
   const mapa = {};
-  vuelos.forEach(v=>{
+  (vuelos||[]).forEach(v=>{
     const fechaStr = String(v.Fecha||'');
     const dp = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr;
     const m = dp.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if(!m) return;
     const mesKey = m[1]+'-'+m[2];
-    if(!mapa[mesKey]) mapa[mesKey] = {adDia:0,adNoche:0,trDia:0,trNoche:0,total:0,aterrizajes:0,multimotor:0,instrumentos:0,capota:0,simulador:0};
-    const r = mapa[mesKey];
-    r.adDia += Number(v.AD_Dia_Piloto)||0; r.adNoche += Number(v.AD_Noche_Piloto)||0;
-    r.trDia += Number(v.TR_Dia_Piloto)||0; r.trNoche += Number(v.TR_Noche_Piloto)||0;
-    r.total += Number(v.TotalHoras)||0;
-    r.aterrizajes += Number(v.Aterrizajes)||0; r.multimotor += Number(v.Multimotor)||0;
-    r.instrumentos += Number(v.Instr_Real_Piloto)||0; r.capota += Number(v.Capota)||0;
-    r.simulador += Number(v.Adiestrador_PilotoInstruccion)||0;
+    if(!mapa[mesKey]) mapa[mesKey] = resumenVacio();
+    acumularVuelo(mapa[mesKey], v);
   });
   return mapa;
 }
@@ -2147,21 +2104,10 @@ function generarInformeMensual(pilotos, todos, mesKey){
     'Aterr.','Multim.','Instrum.','Capota','Simulador'
   ].map(t=>el('th',{},t)))]));
   const tbodyPilotos = el('tbody',{});
-  let totMes={adDia:0,adNoche:0,trDia:0,trNoche:0,total:0,aterrizajes:0,multimotor:0,instrumentos:0,capota:0,simulador:0};
+  let totMes = resumenVacio();
   pilotos.forEach(p=>{
-    const vuelosMes = (p.vuelos||[]).filter(v=>{
-      const f = String(v.Fecha||''); const dp = f.includes('T')?f.split('T')[0]:f;
-      return dp.indexOf(mesKey)===0;
-    });
-    const r = {adDia:0,adNoche:0,trDia:0,trNoche:0,total:0,aterrizajes:0,multimotor:0,instrumentos:0,capota:0,simulador:0};
-    vuelosMes.forEach(v=>{
-      r.adDia += Number(v.AD_Dia_Piloto)||0; r.adNoche += Number(v.AD_Noche_Piloto)||0;
-      r.trDia += Number(v.TR_Dia_Piloto)||0; r.trNoche += Number(v.TR_Noche_Piloto)||0;
-      r.total += Number(v.TotalHoras)||0;
-      r.aterrizajes += Number(v.Aterrizajes)||0; r.multimotor += Number(v.Multimotor)||0;
-      r.instrumentos += Number(v.Instr_Real_Piloto)||0; r.capota += Number(v.Capota)||0;
-      r.simulador += Number(v.Adiestrador_PilotoInstruccion)||0;
-    });
+    const vuelosMes = filtrarVuelosDelMes(p.vuelos, mesKey);
+    const r = calcularResumen(vuelosMes);
     Object.keys(totMes).forEach(k=> totMes[k]+=r[k]);
     tbodyPilotos.appendChild(el('tr',{},[
       p.nombre+' '+p.apellido, p.licencia||'-', fmt(r.adDia), fmt(r.adNoche), fmt(r.trDia), fmt(r.trNoche),
@@ -2174,10 +2120,7 @@ function generarInformeMensual(pilotos, todos, mesKey){
 
   // --- Tabla por avión ---
   cont.appendChild(el('h2',{},'Horas por avión'));
-  const vuelosMesTodos = todos.filter(v=>{
-    const f = String(v.Fecha||''); const dp = f.includes('T')?f.split('T')[0]:f;
-    return dp.indexOf(mesKey)===0;
-  });
+  const vuelosMesTodos = filtrarVuelosDelMes(todos, mesKey);
   const porAvion = {};
   vuelosMesTodos.forEach(v=>{ if(!v.Matricula) return; porAvion[v.Matricula] = (porAvion[v.Matricula]||0) + (Number(v.TotalHoras)||0); });
   const tablaAvion = el('table',{});
@@ -2346,8 +2289,14 @@ const DOCUMENTOS_PROCEDIMIENTOS = {
   ]
 };
 
+function refrescarProcedimientos(){
+  const cont = document.getElementById('procedimientos-container');
+  if(!cont){ render(); return; }
+  cont.replaceWith(renderProcedimientos());
+}
+
 function renderProcedimientos(){
-  const wrap = el('div',{});
+  const wrap = el('div',{id:'procedimientos-container'});
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Procedimientos Pilotos DFY'));
   card.appendChild(el('div',{class:'sub'},'Elige una categoría para ver los documentos disponibles.'));
@@ -2356,7 +2305,7 @@ function renderProcedimientos(){
   const categorias = [['INGRESO','Ingreso'],['MIGRACION','Migración'],['CONVALIDACION','Convalidación']];
   categorias.forEach(([key,label])=>{
     const b = el('button',{class:'tab'+(state.procCategoria===key?' active':''), style:'border:1px solid var(--line);border-radius:8px;'}, label);
-    b.addEventListener('click', ()=>{ state.procCategoria = (state.procCategoria===key ? null : key); render(); });
+    b.addEventListener('click', ()=>{ state.procCategoria = (state.procCategoria===key ? null : key); refrescarProcedimientos(); });
     btnRow.appendChild(b);
   });
   card.appendChild(btnRow);
@@ -2665,12 +2614,24 @@ async function renderAdmin(){
   }
 
   const altaBtn = el('button',{class:'btn-primary', style:'max-width:220px;margin-bottom:16px;'}, state.mostrarFormPiloto ? 'Cancelar' : '+ Agregar piloto');
-  altaBtn.addEventListener('click', ()=>{ state.mostrarFormPiloto = !state.mostrarFormPiloto; render(); });
   content.appendChild(altaBtn);
 
+  // Contenedor propio del formulario: mostrarlo/ocultarlo no necesita recargar
+  // toda la sección desde el servidor, es solo un formulario vacío.
+  const contenedorFormAlta = el('div',{});
   if(state.mostrarFormPiloto){
-    content.appendChild(renderFormAltaPiloto(()=>{ state.mostrarFormPiloto=false; render(); }));
+    contenedorFormAlta.appendChild(renderFormAltaPiloto(()=>{ state.mostrarFormPiloto=false; render(); }));
   }
+  content.appendChild(contenedorFormAlta);
+
+  altaBtn.addEventListener('click', ()=>{
+    state.mostrarFormPiloto = !state.mostrarFormPiloto;
+    altaBtn.textContent = state.mostrarFormPiloto ? 'Cancelar' : '+ Agregar piloto';
+    contenedorFormAlta.innerHTML = '';
+    if(state.mostrarFormPiloto){
+      contenedorFormAlta.appendChild(renderFormAltaPiloto(()=>{ state.mostrarFormPiloto=false; render(); }));
+    }
+  });
 
   const buscador = el('input',{type:'text', placeholder:'Buscar piloto por nombre...'});
   buscador.value = state.busquedaPiloto || '';
