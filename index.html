@@ -1087,7 +1087,7 @@ function refrescarTablaVuelos(){
 function renderReporte(){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Reporte anónimo'));
-  card.appendChild(el('div',{class:'sub'},'Este mensaje llega únicamente al instructor y no queda asociado a tu usuario.'));
+  card.appendChild(el('div',{class:'sub'},'Usa este espacio para compartir cualquier inquietud, sugerencia o situación. Es totalmente anónimo.'));
   const textarea = el('textarea',{rows:'6', placeholder:'Escribe tu mensaje...', id:'reporte-mensaje', name:'mensaje', 'aria-label':'Mensaje del reporte'});
   textarea.style.cssText='width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;font-family:inherit;resize:vertical;';
   card.appendChild(el('div',{class:'field'},[textarea]));
