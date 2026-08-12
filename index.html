@@ -232,7 +232,8 @@ function el(tag, attrs={}, children=[]){
   });
   (Array.isArray(children)?children:[children]).forEach(c=>{
     if(c==null) return;
-    e.appendChild(typeof c==='string'?document.createTextNode(c):c);
+    const esPrimitivo = typeof c==='string' || typeof c==='number' || typeof c==='boolean';
+    e.appendChild(esPrimitivo ? document.createTextNode(String(c)) : c);
   });
   return e;
 }
@@ -2538,6 +2539,26 @@ async function renderAdmin(){
     const r = await apiGet({action:'alertasAdmin'});
     content.innerHTML='';
     if(!r.ok){ content.appendChild(el('div',{class:'empty'},r.error||'Error cargando datos')); return; }
+
+    if(r.cumpleanosProximos && r.cumpleanosProximos.length > 0){
+      const cardCumples = el('div',{class:'card'});
+      cardCumples.appendChild(el('h3',{},'🎂 Cumpleaños próximos'));
+      cardCumples.appendChild(el('div',{class:'sub'},'Pilotos que cumplen años en los próximos 7 días.'));
+      const list = el('div',{class:'pilot-list'});
+      r.cumpleanosProximos.forEach(c=>{
+        const item = el('div',{class:'pilot-item', style:'cursor:pointer;'},[
+          el('div',{},[
+            el('div',{class:'name'}, c.nombre+' '+c.apellido),
+            el('div',{class:'meta'}, formatFecha(c.fecha))
+          ]),
+          el('div',{class:'hours mono'}, c.dias===0 ? '¡Hoy!' : (c.dias+' día'+(c.dias===1?'':'s')))
+        ]);
+        item.addEventListener('click', ()=>{ state.adminTab='pilotos'; state.adminSelected=c.usuario; state.paginaTabla=null; render(); });
+        list.appendChild(item);
+      });
+      cardCumples.appendChild(list);
+      content.appendChild(cardCumples);
+    }
 
     const cardNuevos = el('div',{class:'card'});
     cardNuevos.appendChild(el('h3',{},'Nuevos vuelos'));
