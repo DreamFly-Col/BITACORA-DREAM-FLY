@@ -1128,17 +1128,19 @@ const GRUPOS_SANGUINEOS = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
 function renderDatosPersonales(datos){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Datos personales'));
-  card.appendChild(el('div',{class:'sub'},'Mantén esta información actualizada, sobre todo el contacto de emergencia.'));
+  card.appendChild(el('div',{class:'sub'},'Mantén esta información actualizada.'));
 
   const grid = el('div',{class:'grid', style:'align-items:end;'});
   const fields = {};
   const estiloControl = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
 
-  function textF(key,label,type='text'){
+  function textF(key,label,type='text',ancho=false){
     const inp = el('input',{type:type});
     inp.style.cssText = estiloControl;
     fields[key]=inp;
-    grid.appendChild(campoConEtiqueta(label, inp));
+    const campo = campoConEtiqueta(label, inp);
+    if(ancho) campo.style.gridColumn = '1 / -1';
+    grid.appendChild(campo);
   }
   function selectF(key,label,opciones){
     const sel = el('select',{});
@@ -1150,7 +1152,7 @@ function renderDatosPersonales(datos){
   }
 
   textF('Telefono','Teléfono / WhatsApp','tel');
-  textF('Email','Correo electrónico','email');
+  textF('Email','Correo electrónico','email',true);
   textF('FechaNacimiento','Fecha de nacimiento','date');
   textF('Nacionalidad','Nacionalidad');
   textF('ContactoEmergenciaNombre','Contacto de emergencia · Nombre');
