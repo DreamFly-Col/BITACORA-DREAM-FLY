@@ -1122,6 +1122,73 @@ const ETAPAS_RADEX = [
   'RESIDENCIA OTORGADA'
 ];
 
+const GRUPOS_SANGUINEOS = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+
+function renderDatosPersonales(datos){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Datos personales'));
+  card.appendChild(el('div',{class:'sub'},'Mantén esta información actualizada, sobre todo el contacto de emergencia.'));
+
+  const grid = el('div',{class:'grid', style:'align-items:end;'});
+  const fields = {};
+  const estiloControl = 'width:100%;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:14px;';
+
+  function textF(key,label,type='text'){
+    const inp = el('input',{type:type});
+    inp.style.cssText = estiloControl;
+    fields[key]=inp;
+    grid.appendChild(campoConEtiqueta(label, inp));
+  }
+  function selectF(key,label,opciones){
+    const sel = el('select',{});
+    sel.style.cssText = estiloControl;
+    sel.appendChild(el('option',{value:''},'Seleccionar...'));
+    opciones.forEach(o=> sel.appendChild(el('option',{value:o}, o)));
+    fields[key]=sel;
+    grid.appendChild(campoConEtiqueta(label, sel));
+  }
+
+  textF('Telefono','Teléfono / WhatsApp','tel');
+  textF('Email','Correo electrónico','email');
+  textF('FechaNacimiento','Fecha de nacimiento','date');
+  textF('Nacionalidad','Nacionalidad');
+  textF('ContactoEmergenciaNombre','Contacto de emergencia · Nombre');
+  textF('ContactoEmergenciaRelacion','Contacto de emergencia · Relación');
+  textF('ContactoEmergenciaTelefono','Contacto de emergencia · Teléfono','tel');
+  selectF('GrupoSanguineo','Grupo sanguíneo', GRUPOS_SANGUINEOS);
+  card.appendChild(grid);
+
+  if(datos){
+    Object.entries(fields).forEach(([k,inp])=>{
+      if(!datos[k]) return;
+      inp.value = (k==='FechaNacimiento') ? String(datos[k]).split('T')[0] : datos[k];
+    });
+  }
+
+  const errorBox = el('div',{class:'error'});
+  card.appendChild(errorBox);
+
+  const btn = el('button',{class:'btn-primary', style:'margin-top:14px;'}, 'Guardar');
+  btn.addEventListener('click', async ()=>{
+    errorBox.style.display='none';
+    const data = {action:'guardarDatosPersonales'};
+    Object.entries(fields).forEach(([k,inp])=>{ data[k]=inp.value; });
+    btn.disabled=true; btn.textContent='Guardando...';
+    try{
+      const r = await apiPost(data);
+      if(r.ok){ showToast('Datos personales guardados ✓'); }
+      else { errorBox.textContent=r.error||'Error al guardar'; errorBox.style.display='block'; }
+    }catch(e){
+      errorBox.textContent='No se pudo conectar.'; errorBox.style.display='block';
+    } finally {
+      btn.disabled=false; btn.textContent='Guardar';
+    }
+  });
+  card.appendChild(btn);
+
+  return card;
+}
+
 function renderMigratorio(estado){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Estado migratorio'));
@@ -1415,6 +1482,38 @@ function renderHorasIniciales(horas){
 }
 
 /* ---------------- ESTADO MIGRATORIO (resumen admin, solo lectura) ---------------- */
+function renderDatosPersonalesResumen(d){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Datos personales'));
+  if(!d){
+    card.appendChild(el('div',{class:'sub'},'Todavía no cargó esta información.'));
+    return card;
+  }
+  const rows = [
+    ['Teléfono / WhatsApp', d.Telefono||'-'],
+    ['Correo electrónico', d.Email||'-'],
+    ['Fecha de nacimiento', formatFecha(d.FechaNacimiento)],
+    ['Nacionalidad', d.Nacionalidad||'-'],
+    ['Grupo sanguíneo', d.GrupoSanguineo||'-'],
+  ];
+  const grid = el('div',{class:'gauges'});
+  rows.forEach(([lbl,val])=>{
+    grid.appendChild(el('div',{class:'gauge'},[
+      el('div',{class:'val mono', style:'font-size:15px;'}, val || '-'),
+      el('div',{class:'lbl'}, lbl)
+    ]));
+  });
+  card.appendChild(grid);
+  if(d.ContactoEmergenciaNombre || d.ContactoEmergenciaTelefono){
+    card.appendChild(el('div',{style:'margin-top:14px;'},[
+      el('div',{style:'font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;'},'Contacto de emergencia'),
+      el('div',{style:'font-size:13px;line-height:1.6;'},
+        (d.ContactoEmergenciaNombre||'-')+' · '+(d.ContactoEmergenciaRelacion||'-')+' · '+(d.ContactoEmergenciaTelefono||'-'))
+    ]));
+  }
+  return card;
+}
+
 function renderMigratorioResumen(m){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Estado migratorio'));
@@ -2353,12 +2452,14 @@ async function renderPiloto(){
     return;
   }
   if(state.tab==='miinformacion'){
-    const [rMig, rDoc] = await Promise.all([
+    const [rDatos, rMig, rDoc] = await Promise.all([
+      apiGet({action:'datosPersonales'}),
       apiGet({action:'estadoMigratorio', usuario: state.session.usuario}),
       apiGet({action:'documentos'})
     ]);
     content.innerHTML='';
     if(!rMig.ok){ content.appendChild(el('div',{class:'empty'},rMig.error||'Error cargando datos')); return; }
+    content.appendChild(renderDatosPersonales(rDatos.ok ? rDatos.datos : null));
     content.appendChild(renderMigratorio(rMig.estado));
     content.appendChild(renderDocumentosPiloto(rDoc.ok ? (rDoc.documentos||{}) : {}));
     return;
@@ -2604,6 +2705,7 @@ async function renderAdmin(){
     estPilotoContainer.appendChild(renderEstadisticasPiloto(p.vuelos));
     content.appendChild(estPilotoContainer);
     content.appendChild(renderTable(p.vuelos));
+    content.appendChild(renderDatosPersonalesResumen(p.datosPersonales));
     content.appendChild(renderMigratorioResumen(p.migratorio));
     content.appendChild(renderDocumentosAdmin(p));
     return;
