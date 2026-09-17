@@ -2376,6 +2376,9 @@ function renderHorasDreamFly(todos){
 // lista de { titulo, url }. El link puede ser, por ejemplo, un archivo
 // de Google Drive compartido como "Cualquiera con el enlace puede ver".
 const DOCUMENTOS_PROCEDIMIENTOS = {
+  PAIEA: [
+    { titulo: 'Ver documento', url: 'https://drive.google.com/file/d/1Jh2TKTA5eVHQzBHmEz4aQqfx4Xil6XwI/view?usp=drive_link' }
+  ],
   INGRESO: [
     { titulo: 'Ver documentos de Ingreso', url: 'https://drive.google.com/drive/folders/1kHsMfzztp4PHh1GbCphNGqDWRqdxn0AG' }
   ],
@@ -2403,7 +2406,7 @@ function renderProcedimientos(){
   card.appendChild(el('div',{class:'sub'},'Elige una categoría para ver los documentos disponibles.'));
 
   const btnRow = el('div',{style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;'});
-  const categorias = [['INGRESO','Ingreso'],['MIGRACION','Migración'],['CONVALIDACION','Convalidación'],['INSTRUCTIVO','Instructivo bitácora digital']];
+  const categorias = [['PAIEA','Piloto de Avión Internacional Etapa Argentina'],['INGRESO','Ingreso'],['MIGRACION','Migración'],['CONVALIDACION','Convalidación'],['INSTRUCTIVO','Instructivo bitácora digital']];
   categorias.forEach(([key,label])=>{
     const b = el('button',{class:'tab'+(state.procCategoria===key?' active':''), style:'border:1px solid var(--line);border-radius:8px;'}, label);
     b.addEventListener('click', ()=>{ state.procCategoria = (state.procCategoria===key ? null : key); refrescarProcedimientos(); });
