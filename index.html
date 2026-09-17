@@ -60,7 +60,7 @@
   .brand-badge{ width:44px; height:44px; flex-shrink:0; }
   .brand-badge img{ width:100%; height:100%; object-fit:contain; display:block; }
   .brand-badge-lg{ width:84px; height:84px; }
-  .brand-badge-sm{ width:66px; height:66px; }
+  .brand-badge-sm{ width:96px; height:96px; }
   .brand h1{font-size:17px;margin:0;letter-spacing:.02em;}
   .brand p{margin:2px 0 0;color:var(--muted);font-size:12px;}
   .field{margin-top:16px;}
@@ -471,7 +471,7 @@ function renderLogin(){
 /* ---------------- TOPBAR ---------------- */
 function renderTopbar(subtitle){
   const bar = el('div',{class:'topbar'});
-  bar.appendChild(el('div',{class:'who', style:'display:flex;align-items:center;gap:10px;'},[
+  bar.appendChild(el('div',{class:'who', style:'display:flex;align-items:center;gap:22px;'},[
     el('div',{class:'brand-badge brand-badge-sm'},[el('img',{src:LOGO_DATA_URI, alt:'Dream Fly'})]),
     el('div',{},[
       el('h2',{},[state.session.nombre+' '+state.session.apellido, el('span',{class:'tag'},state.session.rol==='admin'?'Instructor':'Piloto')]),
