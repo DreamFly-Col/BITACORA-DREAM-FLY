@@ -2296,6 +2296,31 @@ function generarInformePiloto(p){
   tablaProgreso.appendChild(tbodyProgreso);
   cont.appendChild(tablaProgreso);
 
+  // --- Actividades faltantes ---
+  const af = p.actividadesFaltantes || {};
+  const examenesSel = String(af.ExamenesSeleccion||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const horasSel = String(af.HorasSeleccion||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const docSel = String(af.DocConvalidacion||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const hayAlgo = examenesSel.length || horasSel.length || docSel.length || af.ExamenesNota || af.HorasNota;
+
+  cont.appendChild(el('h2',{},'Actividades faltantes'));
+  const tablaFaltantes = el('table',{});
+  tablaFaltantes.appendChild(el('thead',{},[el('tr',{},[el('th',{},'Categoría'), el('th',{},'Detalle')])]));
+  const tbodyFaltantes = el('tbody',{});
+  if(!hayAlgo){
+    tbodyFaltantes.appendChild(el('tr',{},[el('td',{colspan:'2'},'Sin actividades pendientes registradas.')]));
+  } else {
+    tbodyFaltantes.appendChild(el('tr',{},[el('td',{},'Exámenes'), el('td',{}, examenesSel.length ? examenesSel.join(', ') : '-')]));
+    if(af.ExamenesNota) tbodyFaltantes.appendChild(el('tr',{},[el('td',{},'Nota exámenes'), el('td',{}, af.ExamenesNota)]));
+    tbodyFaltantes.appendChild(el('tr',{},[el('td',{},'Horas'), el('td',{}, horasSel.length ? horasSel.join(', ') : '-')]));
+    if(af.HorasNota) tbodyFaltantes.appendChild(el('tr',{},[el('td',{},'Nota horas'), el('td',{}, af.HorasNota)]));
+    OPCIONES_DOC_CONVALIDACION.forEach(op=>{
+      tbodyFaltantes.appendChild(el('tr',{},[el('td',{},op), el('td',{}, docSel.includes(op) ? 'Completo ✓' : 'Pendiente')]));
+    });
+  }
+  tablaFaltantes.appendChild(tbodyFaltantes);
+  cont.appendChild(tablaFaltantes);
+
   window.print();
 }
 
