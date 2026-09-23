@@ -1488,6 +1488,121 @@ function renderHorasIniciales(horas){
 }
 
 /* ---------------- ESTADO MIGRATORIO (resumen admin, solo lectura) ---------------- */
+// "Actividades Faltantes": exclusivo del instructor. Exámenes/Horas son
+// selección múltiple con una nota compartida; Documentos de convalidación
+// son botones siempre visibles que cambian de color al marcarlos.
+const OPCIONES_EXAMENES_FALTANTES = ['PPA','PCA y HVI','MULT-T'];
+const OPCIONES_HORAS_FALTANTES = ['Radioeléctrica','Navegación','Nocturnas VFR','Capota','Nocturnas travesía','Multimotor'];
+const OPCIONES_DOC_CONVALIDACION = ['Formulario Autorización','Formulario certificado de horas','Formulario solicitud de licencia','Analítico firmado'];
+
+function renderActividadesFaltantes(p){
+  const card = el('div',{class:'card'});
+  card.appendChild(el('h3',{},'Actividades Faltantes'));
+  card.appendChild(el('div',{class:'sub'},'Marca lo que le falta a este piloto. Se guarda al tocar "Guardar".'));
+
+  const datos = p.actividadesFaltantes || {};
+  let examenesSel = String(datos.ExamenesSeleccion||'').split(',').map(s=>s.trim()).filter(Boolean);
+  let horasSel = String(datos.HorasSeleccion||'').split(',').map(s=>s.trim()).filter(Boolean);
+  let docSel = String(datos.DocConvalidacion||'').split(',').map(s=>s.trim()).filter(Boolean);
+
+  function pildora(texto, activo, colorActivo){
+    return el('span',{style:'display:inline-block;padding:7px 14px;margin:4px 8px 4px 0;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;user-select:none;border:1px solid '+(activo?colorActivo:'var(--line)')+';background:'+(activo?colorActivo:'transparent')+';color:'+(activo?'#0B1220':'var(--text)')+';'}, texto);
+  }
+
+  // --- Exámenes ---
+  card.appendChild(el('div',{style:'font-size:12px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px;'},'Exámenes'));
+  const wrapExamenes = el('div',{});
+  const notaExamenes = el('textarea',{rows:'2', placeholder:'Escribe una nota sobre los exámenes seleccionados...'});
+  notaExamenes.style.cssText = 'width:100%;margin-top:8px;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;display:none;';
+  notaExamenes.value = datos.ExamenesNota || '';
+  function refrescarExamenes(){
+    wrapExamenes.innerHTML = '';
+    OPCIONES_EXAMENES_FALTANTES.forEach(op=>{
+      const activo = examenesSel.includes(op);
+      const pil = pildora(op, activo, 'var(--amber)');
+      pil.addEventListener('click', ()=>{
+        examenesSel = activo ? examenesSel.filter(x=>x!==op) : examenesSel.concat([op]);
+        refrescarExamenes();
+      });
+      wrapExamenes.appendChild(pil);
+    });
+    notaExamenes.style.display = examenesSel.length ? 'block' : 'none';
+  }
+  refrescarExamenes();
+  card.appendChild(wrapExamenes);
+  card.appendChild(notaExamenes);
+
+  // --- Horas ---
+  card.appendChild(el('div',{style:'font-size:12px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;'},'Horas'));
+  const wrapHoras = el('div',{});
+  const notaHoras = el('textarea',{rows:'2', placeholder:'Escribe una nota sobre las horas seleccionadas...'});
+  notaHoras.style.cssText = notaExamenes.style.cssText;
+  notaHoras.value = datos.HorasNota || '';
+  function refrescarHoras(){
+    wrapHoras.innerHTML = '';
+    OPCIONES_HORAS_FALTANTES.forEach(op=>{
+      const activo = horasSel.includes(op);
+      const pil = pildora(op, activo, 'var(--amber)');
+      pil.addEventListener('click', ()=>{
+        horasSel = activo ? horasSel.filter(x=>x!==op) : horasSel.concat([op]);
+        refrescarHoras();
+      });
+      wrapHoras.appendChild(pil);
+    });
+    notaHoras.style.display = horasSel.length ? 'block' : 'none';
+  }
+  refrescarHoras();
+  card.appendChild(wrapHoras);
+  card.appendChild(notaHoras);
+
+  // --- Documentos de convalidación ---
+  card.appendChild(el('div',{style:'font-size:12px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px;'},'Documentos de convalidación'));
+  const wrapDoc = el('div',{});
+  function refrescarDoc(){
+    wrapDoc.innerHTML = '';
+    OPCIONES_DOC_CONVALIDACION.forEach(op=>{
+      const activo = docSel.includes(op);
+      const pil = pildora(op, activo, 'var(--teal)');
+      pil.addEventListener('click', ()=>{
+        docSel = activo ? docSel.filter(x=>x!==op) : docSel.concat([op]);
+        refrescarDoc();
+      });
+      wrapDoc.appendChild(pil);
+    });
+  }
+  refrescarDoc();
+  card.appendChild(wrapDoc);
+
+  // --- Guardar ---
+  const errorBox = el('div',{class:'error'});
+  card.appendChild(errorBox);
+  const btnGuardar = el('button',{class:'btn-primary', style:'margin-top:14px;'},'Guardar');
+  btnGuardar.addEventListener('click', async ()=>{
+    errorBox.style.display='none';
+    btnGuardar.disabled=true; btnGuardar.textContent='Guardando...';
+    try{
+      const r = await apiPost({
+        action:'guardarActividadesFaltantes',
+        Usuario: p.usuario,
+        ExamenesSeleccion: examenesSel.join(','),
+        ExamenesNota: notaExamenes.value,
+        HorasSeleccion: horasSel.join(','),
+        HorasNota: notaHoras.value,
+        DocConvalidacion: docSel.join(',')
+      });
+      if(r.ok){ showToast('Actividades faltantes guardadas ✓'); }
+      else { errorBox.textContent = r.error||'Error al guardar'; errorBox.style.display='block'; }
+    }catch(e){
+      errorBox.textContent='No se pudo conectar.'; errorBox.style.display='block';
+    } finally {
+      btnGuardar.disabled=false; btnGuardar.textContent='Guardar';
+    }
+  });
+  card.appendChild(btnGuardar);
+
+  return card;
+}
+
 function renderDatosPersonalesResumen(d){
   const card = el('div',{class:'card'});
   card.appendChild(el('h3',{},'Datos personales'));
@@ -2734,6 +2849,7 @@ async function renderAdmin(){
     estPilotoContainer.appendChild(renderEstadisticasPiloto(p.vuelos));
     content.appendChild(estPilotoContainer);
     content.appendChild(renderTable(p.vuelos));
+    content.appendChild(renderActividadesFaltantes(p));
     content.appendChild(renderDatosPersonalesResumen(p.datosPersonales));
     content.appendChild(renderMigratorioResumen(p.migratorio));
     content.appendChild(renderDocumentosAdmin(p));
